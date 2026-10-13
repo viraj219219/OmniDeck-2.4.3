@@ -1,0 +1,978 @@
+/* ---------------- Buttons ---------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--shadow-card);
+}
+.btn:hover { background: var(--color-cream-panel-alt); }
+.btn:active { background: var(--color-cream-panel); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+.btn--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+.btn--primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.btn--primary:active { background: var(--color-primary-active); }
+
+.btn--danger {
+  background: var(--color-surface);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.btn--danger:hover { background: var(--color-danger-tint); }
+
+.btn--ghost {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.btn--ghost:hover { background: var(--color-cream-panel-alt); }
+
+.btn--navy {
+  background: var(--color-navy);
+  border-color: var(--color-navy);
+  color: #ffffff;
+}
+.btn--navy:hover { background: var(--color-navy-light); }
+
+.btn--sm { padding: var(--space-1) var(--space-3); font-size: var(--fs-xs); }
+.btn--block { width: 100%; justify-content: center; }
+.btn--icon { padding: var(--space-2); }
+
+/* ---------------- Cards / list rows ---------------- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  margin-bottom: var(--space-2);
+  box-shadow: var(--shadow-card);
+}
+.list-row:hover { border-color: var(--color-primary); }
+.list-row__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.list-row__title { font-weight: 700; font-size: var(--fs-base); }
+.list-row__meta { font-size: var(--fs-xs); color: var(--color-text-secondary); }
+.list-row__actions { display: flex; gap: var(--space-2); flex-shrink: 0; }
+
+/* ---------------- Section headers ---------------- */
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+.section-heading h2 { font-size: var(--fs-lg); font-weight: 700; }
+.section-heading p { color: var(--color-text-secondary); font-size: var(--fs-sm); margin-top: 2px; }
+
+/* ---------------- Forms ---------------- */
+.field { margin-bottom: var(--space-4); }
+.field label {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+.field input[type="text"],
+.field input[type="search"],
+.field input[type="number"],
+.field textarea,
+.field select {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-cream-panel);
+  color: var(--color-text);
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  background: var(--color-surface);
+}
+.field textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+.field-hint { font-size: var(--fs-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
+/* Two number fields side by side (freeform box Position & Size) —
+   .field's own margin-bottom would otherwise stack unevenly against
+   .action-row's flex gap, and without min-width:0 a spinner input can
+   overflow its flex basis rather than shrinking. */
+.action-row .field { flex: 1; min-width: 0; margin-bottom: 0; }
+
+/* ---------------- Empty states ---------------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  max-width: 480px;
+  background: var(--color-surface);
+}
+.empty-state h3 { font-size: var(--fs-md); color: var(--color-text); font-weight: 700; }
+
+/* ---------------- Badges / pills ---------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  background: var(--color-primary-tint);
+  color: var(--color-primary-active);
+}
+.badge--muted { background: var(--color-cream-panel-alt); color: var(--color-text-secondary); }
+.badge--success { background: var(--color-success-tint); color: var(--color-success); }
+.badge--danger { background: var(--color-danger-tint, #fbe9e7); color: var(--color-danger, #b3261e); }
+
+/* ---------------- Toolbar row of pill buttons (e.g. Add Scripture, Add Image ...) ---------------- */
+.action-row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+
+/* ---------------- Toasts ---------------- */
+.toast-root {
+  position: fixed;
+  bottom: var(--space-5);
+  right: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* Above Present Mode (.present-root is z-index 1000): at 500 every toast
+   * raised while presenting — including "the second display was
+   * disconnected" — was rendered BEHIND the fullscreen slide, invisible. */
+  z-index: 2000;
+}
+.toast {
+  background: var(--color-navy-dark);
+  color: #ffffff;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  box-shadow: var(--shadow-flyout);
+  max-width: 320px;
+}
+.toast--success { background: var(--color-success); }
+.toast--danger { background: var(--color-danger); }
+
+/* ---------------- Modal ---------------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+}
+/* Issue 4: shown for the duration of a PowerPoint/PDF import — the
+   LibreOffice/Poppler conversion step can take up to ~2 minutes with
+   otherwise no visible feedback, which reads as a frozen app. Sits above
+   the modal layer (z-index 400) since a file-picker dialog is native
+   chrome, not part of this stacking context. */
+.import-progress-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.72);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  z-index: 500;
+  color: #fff;
+  text-align: center;
+}
+.import-progress-overlay__spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  animation: import-progress-spin 0.8s linear infinite;
+}
+@keyframes import-progress-spin {
+  to { transform: rotate(360deg); }
+}
+.import-progress-overlay__title { font-size: var(--fs-lg, 1.15rem); font-weight: 600; }
+.import-progress-overlay__hint { font-size: var(--fs-sm); color: rgba(255, 255, 255, 0.8); max-width: 320px; }
+
+.modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-flyout);
+  width: fit-content;
+  min-width: 440px;
+  max-width: 92vw;
+  max-height: 88vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0;
+}
+.modal__title {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-navy);
+  color: #ffffff;
+}
+.modal > div:not(.modal__title) { padding: var(--space-5); }
+.modal__actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4); }
+
+/* ================= Color Picker ================= */
+/* Custom saturation/value square + hue slider + hex input + eyedropper —
+   built from scratch (see colorPicker.js) instead of relying on
+   `<input type="color">`, whose own picker UI varies a lot by OS/webview
+   (some skip the eyedropper, some are just a flat swatch grid on mobile). */
+.colorpicker { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.colorpicker__sv-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+}
+.colorpicker__sv { display: block; width: 100%; height: 100%; }
+.colorpicker__sv-cursor {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.colorpicker__hue {
+  width: 220px;
+  height: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 8px;
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.colorpicker__hue::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #14181D;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+.colorpicker__hue::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #14181D;
+}
+.colorpicker__row { display: flex; align-items: center; gap: 10px; width: 220px; }
+.colorpicker__preview { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--color-border); flex-shrink: 0; }
+.colorpicker__hex {
+  flex: 1; min-width: 0; font-family: monospace; text-transform: lowercase;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-cream-panel);
+  color: var(--color-text);
+}
+.colorpicker__swatches { display: flex; flex-wrap: wrap; gap: 6px; width: 220px; }
+.colorpicker__swatch-btn {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  padding: 0;
+}
+.colorpicker__swatch-btn:hover { transform: scale(1.1); }
+
+/* The clickable swatch that opens the picker from a properties-panel field
+   (see colorSwatchField in lessonEditor.js) — deliberately small/inline,
+   distinct from the picker's own larger .colorpicker__preview. */
+.color-swatch-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* ================= Lesson Library ================= */
+.lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+.lesson-tile {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-card);
+  position: relative;
+}
+.lesson-tile:hover { border-color: var(--color-primary); }
+.lesson-tile__thumb {
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(180deg, var(--color-primary-tint), var(--color-cream-panel-alt));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  border-bottom: 1px solid var(--color-border);
+}
+.lesson-tile__body { padding: var(--space-3); display: flex; flex-direction: column; gap: 4px; }
+.lesson-tile__title { font-weight: 700; font-size: var(--fs-base); }
+.lesson-tile__meta { font-size: var(--fs-xs); color: var(--color-text-secondary); }
+.lesson-tile__delete {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-card);
+}
+.lesson-tile__delete:hover { background: var(--color-danger-tint); }
+/* Export sits left of Delete and is neutral (not danger) coloured. */
+.lesson-tile__export { right: calc(var(--space-2) + 28px + 6px); color: var(--color-text-primary, inherit); }
+.lesson-tile__export:hover { background: var(--color-surface-alt, rgba(0, 0, 0, 0.06)); }
+
+/* ================= Lesson Editor (3-pane) ================= */
+.editor-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr 300px;
+  height: 100%;
+  min-height: 0;
+}
+.editor-pane {
+  min-height: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-cream-panel);
+}
+.editor-pane--properties { border-right: none; border-left: 1px solid var(--color-border); background: var(--color-surface); }
+.editor-pane__header {
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.editor-pane__count {
+  background: var(--color-cream-panel-alt);
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: var(--fs-xs);
+}
+
+.slide-list { padding: 0 var(--space-2) var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
+.slide-thumb {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: grab;
+  text-align: left;
+  box-shadow: var(--shadow-card);
+}
+.slide-thumb:hover { border-color: var(--color-border-strong); }
+.slide-thumb.is-active { border-color: var(--color-primary); background: var(--color-primary-tint); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+.slide-thumb__index {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  background: var(--color-cream-panel-alt);
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.slide-thumb.is-active .slide-thumb__index { background: var(--color-primary); color: #fff; }
+/* A real, live miniature of the slide's actual content (see
+   renderSlideThumbPreview in lessonEditor.js) — a fixed-size virtual
+   stage (1280×720, matching a 16:9 slide) scaled down with a CSS
+   transform to fit this small box. overflow:hidden on the outer box is
+   the same safety net present.css's .present-stage uses: it clips
+   instead of letting anything spill out of the thumbnail. pointer-events
+   is off on the inner stage since this is a preview, not a second place
+   to click/drag boxes. */
+.slide-thumb__preview {
+  width: 64px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  position: relative;
+  border-radius: 3px;
+  background: #14181D;
+  flex-shrink: 0;
+}
+.slide-thumb__stage {
+  width: 1280px;
+  height: 720px;
+  /* --slide-w fixed to this box's own real (pre-transform) width, not the
+     100px-ish default present.css's calc()s fall back to — this stage is
+     a real 1280px-wide 16:9 slide rendered actual-size and then shrunk
+     visually with `transform`, so its content must be sized as if it
+     really were 1280px wide, exactly like .editor-canvas/.present-slide
+     size themselves at their own real width. Previously this had no
+     --slide-w at all, and its padding used `5vw` (viewport-relative, not
+     even relative to this 1280px stage) — both meant a filmstrip
+     thumbnail could show slightly different padding/text proportions
+     than the same slide in the editor canvas or Present Mode. */
+  --slide-w: 1280px;
+  transform: scale(0.05); /* 64 / 1280 */
+  transform-origin: top left;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: calc(var(--slide-w, 1280px) * 0.05); /* matches present.css's .present-slide padding exactly */
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.slide-thumb__body { min-width: 0; flex: 1; }
+
+/* Same legibility fix as present.css's .present-stage.has-custom-bg,
+   applied here too since the editor canvas shares these exact text
+   classes with Present Mode by design (see the comment on .editor-canvas
+   above). */
+.editor-canvas.has-custom-bg .present-title,
+.editor-canvas.has-custom-bg .present-body,
+.editor-canvas.has-custom-bg .present-scripture,
+.editor-canvas.has-custom-bg .present-ref,
+.editor-canvas.has-custom-bg .present-eyebrow,
+.editor-canvas.has-custom-bg .freeform-box__text,
+.freeform-canvas.has-custom-bg .freeform-box__text {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+.slide-thumb__title { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slide-thumb__type { font-size: var(--fs-xs); color: var(--color-text-secondary); text-transform: capitalize; }
+/* Issue 8: an incomplete quiz is a per-slide warning, never something that
+   blocks the whole lesson from presenting — see presentMode.js. */
+.slide-thumb__warning {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: none;
+  color: #fff;
+  background: var(--color-danger, #d9534f);
+}
+.slide-thumb.is-dragover { border-color: var(--color-primary); border-style: dashed; }
+.slide-thumb__actions { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+.slide-thumb__action-btn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  border-radius: 3px;
+}
+.slide-thumb__action-btn:hover { background: var(--color-cream-panel-alt); color: var(--color-text); }
+.slide-thumb__action-btn .icon { width: 12px; height: 12px; }
+
+.slide-list-footer {
+  padding: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: var(--space-1);
+}
+
+.editor-canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-cream-panel-alt);
+}
+.editor-canvas-toprow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4) 0;
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+}
+.editor-canvas-toprow strong { color: var(--color-text); font-weight: 700; }
+.editor-canvas-scroll {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  min-height: 0;
+  overflow: auto;
+}
+.editor-canvas {
+  width: 100%;
+  max-width: 860px;
+  aspect-ratio: 16 / 9;
+  /* Matches .present-root's exact dark theater palette (present.css) —
+     not a separate light "paper" skin — so what a teacher builds here is
+     pixel-for-pixel what Present Mode shows, alignment and all, instead
+     of two visual models that can silently drift apart (see the
+     align-items/justify-content fixes in present.css for what that drift
+     already caused once). Deliberately fixed, not app-theme-driven —
+     same reasoning as Present Mode itself. */
+  background: #14181D;
+  color: #F6F4EE;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-flyout);
+  /* Preview/Presentation mismatch fix: this box plays the exact same
+     layout role .present-slide plays in Present Mode (see present.css) —
+     both are the padded, centered box everything else in this file
+     stacks inside. It had fallen out of sync on three counts, each a
+     real, visible drift a teacher would notice comparing this canvas to
+     an actual presented slide:
+       1. No align-items/justify-content: content stacked from the TOP of
+          the box here (flex's default), but centers vertically in
+          .present-slide — a short slide (a title, a quiz question) sat
+          in a completely different vertical position in each place.
+       2. Fixed `var(--space-6)` padding vs. .present-slide's padding,
+          which scales with the box's own rendered width (see
+          .present-slide below) — so as this canvas resized (window
+          resize, properties panel opening/closing), its padding stayed
+          put while Present Mode's scaled, throwing off the proportion
+          of the whole box every text-wrap/auto-fit decision depends on.
+       3. Same story for the gap between stacked elements (title+subtitle,
+          eyebrow+question+body, ...): a fixed token here vs. present.css's
+          .present-stage__inner gap, which is likewise now slide-width-
+          relative (see present.css) — matched here so the two agree at
+          every canvas size, not just by coincidence at one common width.
+     All three now read the identical formula present.css uses, keyed off
+     this box's own --slide-w (kept current by observeSlideWidth() in
+     lessonEditor.js, same mechanism Present Mode's fitSlideBox() uses). */
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--slide-w, 860px) * 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--slide-w, 860px) * 9 / 16 * 0.022);
+  overflow: hidden;
+  position: relative; /* anchors overlay text/image boxes added via "New Text Box" / "New Image Box" */
+  /* Match .present-slide: unconfigured content (notably Scripture verses and references) is centered in both preview and output; explicit per-field alignment still overrides this. */
+  text-align: center;
+}
+
+/* The canvas uses the shared presentation renderer, but its quiz controls are
+   deliberately non-interactive. Keep them at presentation opacity so the
+   preview remains a faithful picture instead of looking disabled/faded. */
+.editor-canvas .present-quiz-option:disabled,
+.editor-canvas .present-quiz-text-input:disabled { opacity: 1; }
+
+/* editor-canvas__eyebrow/title/body/ref/scripture* were removed here —
+   the canvas now reuses present.css's own present-title/present-body/
+   present-eyebrow/present-ref/present-scripture* classes directly (see
+   renderCanvasFor in lessonEditor.js), including dropping the old
+   warm-highlight scripture box that Present Mode never had, so nothing
+   rendered here can visually drift out of sync with Present Mode again —
+   same classes, same colors, same layout, by construction. */
+
+/* Left/center/right alignment control shown directly above an
+   inline-editable canvas text field (title, caption, quiz question,
+   discussion/conclusion body, ...). Always visible rather than a
+   hover-reveal, so it never fights with contenteditable's own focus/blur
+   timing and stays discoverable. Colors tuned for the dark canvas. */
+.align-control { display: flex; gap: 2px; margin-bottom: 2px; }
+.align-control__btn {
+  width: 24px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  color: #B9C3CE;
+  opacity: 0.75;
+}
+.align-control__btn:hover { background: rgba(255,255,255,0.1); opacity: 1; }
+.align-control__btn.is-active { background: rgba(76,141,255,0.28); color: #ffffff; opacity: 1; }
+.align-control__btn .icon { width: 14px; height: 14px; }
+
+/* Text you can double-click to type into right on the slide. Idle state
+   gives a subtle hover cue; [contenteditable="true"] is the live-editing
+   state after a double-click. */
+.editor-canvas__editable { cursor: text; border-radius: 4px; padding: 2px 6px; margin: -2px -6px; transition: background-color 0.12s ease, box-shadow 0.12s ease; }
+.editor-canvas__editable:hover { background-color: rgba(255,255,255,0.1); }
+.editor-canvas__editable[contenteditable="true"] { cursor: text; background-color: rgba(255,255,255,0.1); box-shadow: 0 0 0 2px var(--color-accent, #4C8DFF); outline: none; }
+.editor-canvas__editable.is-placeholder { color: rgba(246,244,238,0.5); font-style: italic; }
+
+
+/* "Freeform" page type: absolutely-positioned drag/resize boxes on a
+   fixed-aspect canvas. Box position/size is always a % of .freeform-canvas
+   (see renderFreeformCanvas in lessonEditor.js), so this scales the same
+   way in the editor and in Present Mode. */
+.freeform-canvas-wrap { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.freeform-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.freeform-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #14181D;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border, rgba(255,255,255,0.12));
+  touch-action: none; /* pointer drag/resize owns touch input inside the canvas */
+}
+.freeform-canvas:focus { outline: none; box-shadow: 0 0 0 2px var(--color-accent, #4C8DFF); }
+.freeform-box {
+  position: absolute;
+  box-sizing: border-box;
+  cursor: grab;
+  border: 1px dashed transparent;
+}
+.freeform-box:hover { border-color: rgba(255,255,255,0.25); }
+.freeform-box.is-selected { border: 2px solid var(--color-accent, #4C8DFF); cursor: grab; }
+.freeform-box__text {
+  width: 100%; height: 100%;
+  /* flex-direction: column so `justify-content` only ever centers
+     vertically — horizontal position is left entirely to `text-align`
+     (set inline per-box). Using `justify-content: center` on a default
+     row-direction flex box here would ALSO center the text block
+     horizontally as a shrink-wrapped unit, overriding text-align the
+     same way .present-stage__inner's align-items used to (see
+     present.css) — this is that same bug, for freeform boxes. */
+  display: flex; flex-direction: column; justify-content: center;
+  color: #F6F4EE;
+  font-family: var(--font-scripture, inherit);
+  line-height: 1.3;
+  padding: 4px;
+  outline: none;
+  overflow: hidden;
+  word-break: break-word;
+}
+.freeform-box__text[contenteditable="true"] { cursor: text; background-color: rgba(255,255,255,0.08); }
+.freeform-box--image, .freeform-box .media-slide { width: 100%; height: 100%; }
+.freeform-box__delete {
+  position: absolute; top: -14px; right: -14px;
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-danger, #C96A5B); color: #fff; border: 2px solid #14181D;
+  cursor: pointer; padding: 0;
+}
+.freeform-box__resize {
+  position: absolute; bottom: -7px; right: -7px;
+  width: 14px; height: 14px; border-radius: 3px;
+  background: var(--color-accent, #4C8DFF); border: 2px solid #14181D;
+  cursor: nwse-resize;
+}
+.freeform-box__toolbar {
+  position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 2px;
+  background: #14181D; border: 1px solid var(--color-border, rgba(255,255,255,0.12));
+  border-radius: 8px; padding: 4px; white-space: nowrap; z-index: 5;
+}
+.freeform-box__tool-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; padding: 0; border: none; border-radius: 5px;
+  background: transparent; color: #F6F4EE; cursor: pointer;
+  font-size: 12px; font-weight: 700;
+}
+.freeform-box__tool-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+.freeform-box__tool-btn.is-active { background: var(--color-accent, #4C8DFF); }
+.freeform-box__tool-btn:disabled { opacity: 0.3; cursor: default; }
+.freeform-box__tool-btn .icon { width: 14px; height: 14px; }
+.freeform-box__tool-sep { width: 1px; height: 18px; background: var(--color-border, rgba(255,255,255,0.15)); margin: 0 2px; }
+
+/* Smart-guide lines shown while dragging a box past dead-center on either
+   axis (see startFreeformDrag in lessonEditor.js) — invisible otherwise. */
+.freeform-guide {
+  position: absolute; background: var(--color-accent, #4C8DFF);
+  opacity: 0; pointer-events: none; z-index: 4;
+}
+.freeform-guide--v { left: 50%; top: 0; width: 1px; height: 100%; }
+.freeform-guide--h { top: 50%; left: 0; height: 1px; width: 100%; }
+
+/* ---------------- Media slides (real image/video rendering) ---------------- */
+.media-slide {
+  flex: 1;
+  width: 100%;
+  min-height: 200px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f1115;
+}
+.media-slide--loading,
+.media-slide--empty,
+.media-slide--missing,
+.media-slide--error {
+  border: 2px dashed var(--color-border-strong);
+  background: var(--color-cream-panel);
+}
+.media-slide--missing,
+.media-slide--error {
+  border-color: var(--color-danger);
+}
+.media-slide__status {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--fs-sm);
+  padding: var(--space-4);
+}
+.media-slide__status > div:first-child { font-weight: 700; color: var(--color-text); margin-bottom: var(--space-1); }
+.media-slide img, .media-slide video { display: block; max-width: 100%; max-height: 100%; }
+.editor-canvas__media {
+  flex: 1;
+  border: 2px dashed rgba(246,244,238,0.25);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(246,244,238,0.55);
+  font-size: var(--fs-sm);
+  min-height: 120px;
+  background-size: cover;
+  background-position: center;
+}
+
+.editor-bottombar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.editor-toolbar {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-navy-light);
+  flex-wrap: wrap;
+  background: var(--color-navy);
+}
+.editor-toolbar .btn {
+  background: var(--color-navy-light);
+  border-color: var(--color-navy-light);
+  color: var(--color-text-on-navy);
+  box-shadow: none;
+}
+.editor-toolbar .btn:hover { background: #475569; }
+
+.lesson-title-input {
+  background: var(--color-navy-light);
+  border: 1px solid transparent;
+  color: var(--color-text-on-navy);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  min-width: 220px;
+  flex: 1 1 260px;
+}
+.lesson-title-input:focus { border-color: var(--color-primary); outline: none; }
+
+.save-status { font-size: var(--fs-xs); color: var(--color-text-on-navy); opacity: 0.85; display: inline-flex; align-items: center; gap: 4px; }
+.save-status--failed { color: var(--color-warning); opacity: 1; font-weight: 700; }
+
+.properties-list { padding: var(--space-3) var(--space-4) var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
+
+.media-slide__pptx-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); height: 34px; padding: 0 var(--space-1); }
+
+/* ================= Bible browser ================= */
+.bible-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100%;
+  min-height: 0;
+}
+.bible-nav {
+  border-right: 1px solid var(--color-border);
+  background: var(--color-cream-panel);
+  overflow-y: auto;
+  padding: var(--space-3);
+}
+.bible-nav__group { margin-bottom: var(--space-4); }
+.bible-nav__group-title { font-size: var(--fs-xs); font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: var(--space-2); }
+.bible-book-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+.bible-book-btn:hover { background: var(--color-cream-panel-alt); }
+.bible-book-btn.is-active { background: var(--color-primary); color: #fff; font-weight: 600; }
+
+.bible-reader { overflow-y: auto; padding: var(--space-5); background: var(--color-surface); }
+.bible-reader__header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4); gap: var(--space-3); flex-wrap: wrap; }
+.bible-reader__ref { font-size: var(--fs-xl); font-weight: 800; }
+.chapter-pager { display: flex; gap: var(--space-2); }
+
+.verse {
+  font-family: var(--font-scripture);
+  font-size: var(--fs-md);
+  line-height: 1.85;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.verse:hover { background: var(--color-primary-tint); }
+.verse.is-selected { background: var(--color-primary-tint-strong); }
+.verse__num { font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 700; color: var(--color-primary); margin-right: 4px; vertical-align: super; }
+
+.selection-bar {
+  position: sticky;
+  bottom: 0;
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-cream-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* ================= Media library ================= */
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--space-3); }
+.media-tile {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.media-tile__thumb {
+  aspect-ratio: 4 / 3;
+  background: var(--color-cream-panel-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+.media-tile__thumb .icon { width: 28px; height: 28px; }
+.media-tile__body { padding: var(--space-2) var(--space-3) var(--space-3); }
+.media-tile__name { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.media-tile__meta { font-size: var(--fs-xs); color: var(--color-text-secondary); }
+
+/* ================= Quiz builder ================= */
+.quiz-question {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+.quiz-option-row { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.quiz-option-row input[type="radio"] { accent-color: var(--color-primary); }
+.quiz-option-row input[type="text"] { flex: 1; }
+
+/* ================= Quiz generation modal ================= */
+.quiz-gen-modal { display: flex; flex-direction: column; gap: var(--space-3); max-width: 560px; }
+.quiz-review-list { display: flex; flex-direction: column; gap: var(--space-3); max-height: 50vh; overflow-y: auto; padding-right: var(--space-1); }
+.quiz-review-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  background: var(--color-cream-panel-alt);
+}
+.field-hint--danger { color: var(--color-danger, #C96A5B); }
+
+/* ================= Scripture page image preview ================= */
+.imagegen-preview {
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-cream-panel-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  text-align: center;
+  padding: var(--space-3);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+/* ================= Settings ================= */
+.settings-group { margin-bottom: var(--space-5); }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
+.settings-row:last-child { border-bottom: none; }
+.settings-row__label { font-weight: 700; font-size: var(--fs-sm); }
+.settings-row__desc { font-size: var(--fs-xs); color: var(--color-text-secondary); }
+
+/* ================= Home ================= */
+.home-hero {
+  padding: var(--space-6) var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  margin-bottom: var(--space-5);
+}
+.home-hero h2 { font-size: var(--fs-2xl); font-weight: 800; }
+.home-hero p { color: var(--color-text-secondary); margin-top: var(--space-2); max-width: 60ch; }
+.home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
+.home-tile {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: var(--space-4);
+  text-align: left;
+  box-shadow: var(--shadow-card);
+}
+.home-tile:hover { border-color: var(--color-primary); background: var(--color-primary-tint); }
+.home-tile h3 { font-size: var(--fs-base); margin-bottom: 4px; font-weight: 700; }
+.home-tile p { font-size: var(--fs-xs); color: var(--color-text-secondary); }
+
+/* Update indicator: a small dot on the Settings item when a new version exists. */
+.nav-rail__item.has-update { position: relative; }
+.nav-rail__item.has-update::after { content: ""; position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent, #2563eb); }

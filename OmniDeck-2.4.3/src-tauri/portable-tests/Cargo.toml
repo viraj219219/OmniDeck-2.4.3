@@ -1,0 +1,14 @@
+# Builds ONLY src/util.rs (no Tauri) so the platform-specific logic can be
+# compiled for, and run on, targets the full app can't be built for on this
+# machine — e.g. `x86_64-pc-windows-gnu` executed under Wine. See
+# ../../tests/portable/run-portable-tests.sh.
+[package]
+name = "omnideck-portable-tests"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "lib.rs"
+
+[workspace]

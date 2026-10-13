@@ -1,0 +1,21 @@
+[package]
+name = "omnideck"
+version = "2.4.3"
+description = "OmniDeck — Sunday School lesson builder and classroom presenter"
+edition = "2021"
+license = "LicenseRef-Proprietary"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-updater = "2"
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+
+[[bin]]
+name = "omnideck"
+path = "src/main.rs"

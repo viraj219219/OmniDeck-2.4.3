@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>OmniDeck</title>
+  <link rel="stylesheet" href="./styles/base.css" />
+  <link rel="stylesheet" href="./styles/layout.css" />
+  <link rel="stylesheet" href="./styles/components.css" />
+  <link rel="stylesheet" href="./styles/present.css" />
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <!-- Left navigation rail: persistent across every section except Present Mode -->
+    <nav class="nav-rail" id="nav-rail" aria-label="Main navigation">
+      <div class="nav-rail__brand">
+        <img class="nav-rail__brand-mark" src="./assets/omnideck-logo.png" alt="OmniDeck" />
+        <span class="nav-rail__brand-name">OmniDeck</span>
+      </div>
+      <ul class="nav-rail__items" id="nav-items">
+        <li><button class="nav-rail__item" data-route="home"><span class="nav-rail__icon" data-icon="home"></span><span>Home</span></button></li>
+        <li><button class="nav-rail__item" data-route="library"><span class="nav-rail__icon" data-icon="library"></span><span>Lesson Library</span></button></li>
+        <li><button class="nav-rail__item" data-route="editor"><span class="nav-rail__icon" data-icon="editor"></span><span>Lesson Editor</span></button></li>
+        <li><button class="nav-rail__item" data-route="bible"><span class="nav-rail__icon" data-icon="bible"></span><span>Bible</span></button></li>
+        <li><button class="nav-rail__item" data-route="media"><span class="nav-rail__icon" data-icon="media"></span><span>Media</span></button></li>
+      </ul>
+      <div class="nav-rail__footer">
+        <button class="nav-rail__item" data-route="settings"><span class="nav-rail__icon" data-icon="settings"></span><span>Settings</span></button>
+      </div>
+    </nav>
+
+    <!-- Main content area: each view renders itself into #view-root -->
+    <main class="app-main">
+      <header class="app-titlebar" id="app-titlebar">
+        <h1 class="app-titlebar__title" id="titlebar-title">Home</h1>
+        <div class="app-titlebar__actions" id="titlebar-actions"></div>
+      </header>
+      <section id="view-root" class="view-root" tabindex="-1"></section>
+    </main>
+  </div>
+
+  <!-- Present Mode renders as a full-viewport overlay, completely replacing the shell -->
+  <div id="present-root" class="present-root present-root--hidden" aria-hidden="true"></div>
+
+  <!-- Lightweight toast/notification region -->
+  <div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

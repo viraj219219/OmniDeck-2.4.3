@@ -1,0 +1,91 @@
+name: Pin LibreOffice checksums (manual)
+
+# Run this ONCE per LibreOffice version bump (Actions -> "Pin LibreOffice checksums" -> Run workflow).
+# It downloads the official archive for every platform on a NATIVE runner using the real vendoring
+# scripts in discovery mode, and prints the SHA-256 lines to paste into scripts/lib/vendor-common.sh
+# (Linux/macOS) — it never produces a bundle and never edits the repository.
+#
+# TRUST: the pins protect users only if YOU confirm them before committing. For each value:
+#   1. it must be identical on a second, independent run (re-run the workflow and compare), and
+#   2. it should match the checksum on The Document Foundation's release page / announcement for
+#      that exact file (the job also prints the checksum the TDF server itself publishes next to
+#      the file; that is the SAME source as the download, so it only detects transfer corruption,
+#      not a compromised mirror).
+# Windows already has a pin in scripts/vendor-libreoffice-windows.ps1; the Windows job below
+# re-derives it so you can see whether it still matches.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "LibreOffice version (blank = scripts/libreoffice-version.txt)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    name: ${{ matrix.id }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { id: linux-x86_64,  runner: ubuntu-22.04,      script: scripts/vendor-libreoffice-linux.sh, arch: x86_64 }
+          - { id: linux-aarch64, runner: ubuntu-22.04-arm,  script: scripts/vendor-libreoffice-linux.sh, arch: aarch64 }
+          - { id: macos-x86_64,  runner: macos-15-intel,    script: scripts/vendor-libreoffice-macos.sh, arch: x86_64 }
+          - { id: macos-aarch64, runner: macos-15,          script: scripts/vendor-libreoffice-macos.sh, arch: aarch64 }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve version
+        run: |
+          v="${{ inputs.version }}"; [ -n "$v" ] || v="$(tr -d '[:space:]' < scripts/libreoffice-version.txt)"
+          echo "LIBREOFFICE_VERSION=$v" >> "$GITHUB_ENV"
+      - name: Discover pin (exit 3 is the SUCCESS code of discovery mode)
+        id: disc
+        run: |
+          set +e
+          OMNIDECK_PIN_DISCOVERY=1 bash "${{ matrix.script }}" "${{ matrix.arch }}" "$RUNNER_TEMP/discard" 2>&1 | tee out.txt
+          code=${PIPESTATUS[0]}
+          set -e
+          [ "$code" -eq 3 ] || { echo "discovery exited $code (expected 3)"; exit 1; }
+          hash="$(grep -Eo '"[0-9a-f]{64}"' out.txt | tail -n1 | tr -d '"')"
+          [ -n "$hash" ] || { echo "no hash found in output"; exit 1; }
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+      - name: Report
+        run: |
+          {
+            echo "### ${{ matrix.id }} - LibreOffice $LIBREOFFICE_VERSION"
+            echo
+            echo "Paste into \`vo_pinned_sha256\` in scripts/lib/vendor-common.sh:"
+            echo
+            echo '```'
+            case "${{ matrix.id }}" in
+              linux-*)  echo "\"$LIBREOFFICE_VERSION:linux-${{ matrix.arch }}\")  echo \"${{ steps.disc.outputs.hash }}\" ;;" ;;
+              macos-*)  echo "\"$LIBREOFFICE_VERSION:macos-${{ matrix.arch }}\")  echo \"${{ steps.disc.outputs.hash }}\" ;;" ;;
+            esac
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  windows-recheck:
+    name: windows-x86_64 (re-verify the existing pin)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and hash
+        shell: pwsh
+        run: |
+          $v = "${{ inputs.version }}"; if (-not $v) { $v = (Get-Content scripts/libreoffice-version.txt -Raw).Trim() }
+          $url = "https://download.documentfoundation.org/libreoffice/stable/$v/win/x86_64/LibreOffice_${v}_Win_x86-64.msi"
+          Invoke-WebRequest -Uri $url -OutFile lo.msi
+          $actual = (Get-FileHash lo.msi -Algorithm SHA256).Hash
+          $sidecar = try { ((Invoke-WebRequest -Uri "$url.sha256").Content -split '\s+')[0].ToUpper() } catch { "(unavailable)" }
+          $ps1 = Get-Content scripts/vendor-libreoffice-windows.ps1 -Raw
+          $m = [regex]::Match($ps1, '"' + [regex]::Escape($v) + '"\s*=\s*"([0-9A-Fa-f]{64})"')
+          $pinned = if ($m.Success) { $m.Groups[1].Value.ToUpper() } else { "(no pin for $v in vendor-libreoffice-windows.ps1)" }
+          $lines = @("### windows-x86_64 - LibreOffice $v", "", "- downloaded SHA-256 : $actual", "- committed pin      : $pinned", "- TDF-published (same server, not independent): $sidecar", "", $(if ($actual -eq $pinned) { "**Committed pin MATCHES this download.**" } else { "**MISMATCH or missing pin - do not release until resolved.**" }))
+          $lines | Add-Content $env:GITHUB_STEP_SUMMARY
+          $lines | Write-Host
+          if ($actual -ne $pinned) { exit 1 }

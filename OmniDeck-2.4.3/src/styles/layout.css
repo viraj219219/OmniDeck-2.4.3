@@ -1,0 +1,141 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--nav-rail-width) 1fr;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ---------------- Nav rail (dark navy, matches reference header chrome) ---------------- */
+.nav-rail {
+  background: var(--color-navy-dark);
+  border-right: 1px solid #0b1220;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3) 0;
+  -webkit-app-region: drag; /* allow window dragging from the rail on frameless setups */
+}
+
+.nav-rail__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  border-bottom: 1px solid var(--color-navy-light);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-4);
+}
+
+.nav-rail__brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.nav-rail__brand-name {
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  color: #ffffff;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.nav-rail__items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--space-2);
+  flex: 1;
+}
+
+.nav-rail__footer {
+  padding: 0 var(--space-2);
+  border-top: 1px solid var(--color-navy-light);
+  padding-top: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.nav-rail__item {
+  -webkit-app-region: no-drag;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-on-navy-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  text-align: left;
+}
+
+.nav-rail__item:hover {
+  background: var(--color-navy-light);
+  color: #ffffff;
+}
+
+.nav-rail__item.is-active {
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.nav-rail__icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+/* ---------------- Main area ---------------- */
+.app-main {
+  display: grid;
+  grid-template-rows: var(--titlebar-height) 1fr;
+  min-width: 0;
+  min-height: 0;
+}
+
+.app-titlebar {
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.app-titlebar__title {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.app-titlebar__actions {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.view-root {
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  background: var(--color-cream);
+}
+
+.view-root:focus { outline: none; }
+
+/* ---------------- Generic page paddings ---------------- */
+.page {
+  padding: var(--space-5);
+  max-width: 1100px;
+}
+
+.page--full {
+  padding: 0;
+  max-width: none;
+  height: 100%;
+}

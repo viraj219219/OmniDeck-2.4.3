@@ -1,0 +1,193 @@
+/*
+  Design direction: professional classroom software (think PowerPoint /
+  Keynote / a real LMS), restyled to match the approved navy/slate/blue
+  visual reference — dark navy chrome, white/slate content surfaces, blue
+  accent, warm cream used only for the presentation canvas default and
+  small highlight moments (matches the reference's "Warm Cream" slide bg).
+  - Rounded-lg surfaces with soft shadows instead of flat 4px borders.
+  - A serif face is used ONLY for scripture reading text, because long-form
+    reading benefits from it — everywhere else is the native UI sans stack.
+*/
+
+:root {
+  /* ---- Color: navy chrome / blue accent / slate surfaces ---- */
+  --color-navy: #1e293b;
+  --color-navy-dark: #0f172a;
+  --color-navy-light: #334155;
+
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-active: #1e40af;
+  --color-primary-tint: #eff6ff;
+  --color-primary-tint-strong: #dbeafe;
+
+  --color-cream: #f8fafc;
+  --color-cream-panel: #f1f5f9;
+  --color-cream-panel-alt: #e2e8f0;
+  --color-canvas-warm: #fffbeb;
+
+  --color-border: #cbd5e1;
+  --color-border-strong: #94a3b8;
+
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-navy: #e2e8f0;
+  --color-text-on-navy-muted: #94a3b8;
+
+  --color-success: #059669;
+  --color-success-tint: #ecfdf5;
+  --color-danger: #dc2626;
+  --color-danger-tint: #fef2f2;
+  --color-warning: #b45309;
+  --color-warning-tint: #fffbeb;
+
+  /* ---- Type ---- */
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-scripture: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.625rem;
+  --fs-2xl: 2.25rem;
+
+  /* ---- Shape / spacing ---- */
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --nav-rail-width: 216px;
+  --titlebar-height: 56px;
+
+  --shadow-flyout: 0 10px 25px -5px rgba(15, 23, 42, 0.25), 0 8px 10px -6px rgba(15, 23, 42, 0.15);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06);
+  --focus-ring: 0 0 0 2px var(--color-cream), 0 0 0 4px var(--color-primary);
+
+  /* App chrome surface used by the titlebar/toolbars — distinct from
+     --color-cream (the page background) so the two can diverge in dark
+     mode without every existing `background: #ffffff` in components.css
+     needing an individual rule. */
+  --color-surface: #ffffff;
+}
+
+/*
+  Dark mode — main app interface only (Settings → Appearance). Present
+  Mode (present.css) is intentionally its own fixed dark theatre palette,
+  never driven by these variables, so this toggle has no effect on what
+  the classroom/projector shows. The nav rail also stays its own fixed
+  dark navy in both modes (matches the approved visual reference); only
+  the content chrome — panels, cards, inputs, text — switches here.
+*/
+:root[data-theme="dark"] {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-primary-active: #93c5fd;
+  --color-primary-tint: rgba(59, 130, 246, 0.14);
+  --color-primary-tint-strong: rgba(59, 130, 246, 0.24);
+
+  --color-cream: #0b1120;
+  --color-cream-panel: #131a2a;
+  --color-cream-panel-alt: #1b2436;
+  /* --color-canvas-warm intentionally NOT overridden here — it's only
+     used inside .editor-canvas, which stays a fixed white "page" surface
+     in both themes (see components.css), so its warm-highlight color
+     must stay fixed too. */
+
+  --color-border: #2b3549;
+  --color-border-strong: #3c4863;
+
+  --color-text: #e7ebf2;
+  --color-text-secondary: #a9b3c4;
+  --color-text-muted: #6d7893;
+
+  --color-success: #34d399;
+  --color-success-tint: rgba(52, 211, 153, 0.14);
+  --color-danger: #f87171;
+  --color-danger-tint: rgba(248, 113, 113, 0.14);
+  --color-warning: #fbbf24;
+  --color-warning-tint: rgba(251, 191, 36, 0.14);
+
+  --color-surface: #131a2a;
+  --shadow-flyout: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --focus-ring: 0 0 0 2px var(--color-cream), 0 0 0 4px var(--color-primary);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  color: var(--color-text);
+  background: var(--color-cream);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden; /* this is a desktop app shell, not a scrolling page */
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+h1, h2, h3, h4, p { margin: 0; }
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+ul { list-style: none; margin: 0; padding: 0; }
+
+a { color: var(--color-primary); }
+
+::selection {
+  background: var(--color-primary-tint-strong);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Respect reduced-motion preference app-wide */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

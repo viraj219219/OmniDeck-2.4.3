@@ -1,0 +1,30 @@
+{
+  "name": "omnideck",
+  "version": "2.4.3",
+  "description": "Sunday School lesson builder and classroom presenter \u2014 OmniDeck",
+  "type": "module",
+  "scripts": {
+    "preflight": "node scripts/check-deps.mjs",
+    "tauri": "node scripts/run-tauri.mjs",
+    "dev": "node scripts/check-deps.mjs && node scripts/vendor-pdfjs.mjs && node scripts/vendor-libreoffice.mjs && node scripts/run-tauri.mjs dev",
+    "build": "node scripts/check-deps.mjs --strict && node scripts/vendor-pdfjs.mjs --strict && node scripts/vendor-libreoffice.mjs && node scripts/verify-release-inputs.mjs && node scripts/run-tauri.mjs build",
+    "check": "node tests/syntax-check.mjs",
+    "test": "node tests/run-all.mjs",
+    "e2e:linux": "bash tests/e2e/run-linux-e2e.sh",
+    "vendor:pdfjs": "node scripts/vendor-pdfjs.mjs",
+    "verify:release-inputs": "node scripts/verify-release-inputs.mjs",
+    "vendor:libreoffice": "node scripts/vendor-libreoffice.mjs"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.1.0",
+    "@tauri-apps/plugin-dialog": "^2.0.1",
+    "@tauri-apps/plugin-fs": "^2.0.2",
+    "pdfjs-dist": "^4.7.76"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

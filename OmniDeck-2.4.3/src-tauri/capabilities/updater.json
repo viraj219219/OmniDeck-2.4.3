@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "updater",
+  "description": "Self-update (check, download, verify signature, install) is available to the MAIN window only; the audience window never needs it. Signature verification is enforced by the updater plugin against the public key configured at release time.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "updater:default"
+  ]
+}

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>OmniDeck — Audience Display</title>
+  <link rel="stylesheet" href="./styles/base.css" />
+  <link rel="stylesheet" href="./styles/present.css" />
+</head>
+<body>
+  <!-- This window has no navigation, no editor, no controls — it only ever
+       shows what the presenter window (main) broadcasts to it. It is not a
+       route in the normal app router; it's a separate Tauri window created
+       by open_audience_window only when a church has 2+ displays and the
+       teacher enters Present Mode. -->
+  <div id="audience-root" class="present-root"></div>
+  <script type="module" src="./js/audience.js"></script>
+</body>
+</html>
