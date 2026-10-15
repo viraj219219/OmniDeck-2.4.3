@@ -15,16 +15,17 @@ vo_die() { echo "ERROR: $*" >&2; exit 1; }
 # cross-checked against the signed release announcement / a second mirror):
 #   OMNIDECK_PIN_DISCOVERY=1 scripts/vendor-libreoffice-linux.sh x86_64
 # prints "Computed SHA-256" and exits 3 WITHOUT producing a bundle. Copy the
-# value into the matching line below and commit. Discovery is refused on GitHub
-# Actions so a release can never run it.
-# Permit hash discovery locally, and in GitHub Actions ONLY when this exact
-# manual workflow is explicitly dispatched. Normal push/PR/release builds can
-# never turn an unpinned download into a successful build.
+# value into the matching line below and commit. GitHub Actions discovery is
+# allowed only in the dedicated checksum workflow, on manual dispatch or PR
+# validation; normal build, push, and release jobs remain blocked.
 vo_pin_discovery_allowed() {
   [ "${OMNIDECK_PIN_DISCOVERY:-0}" = "1" ] || return 1
   if [ "${GITHUB_ACTIONS:-}" != "true" ]; then return 0; fi
-  [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ] &&
-    [ "${GITHUB_WORKFLOW:-}" = "Pin LibreOffice checksums (manual)" ]
+  [ "${GITHUB_WORKFLOW:-}" = "Pin LibreOffice checksums (manual)" ] || return 1
+  case "${GITHUB_EVENT_NAME:-}" in
+    workflow_dispatch|pull_request) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 vo_pinned_sha256() {
   # Test-only override, honoured ONLY together with the test-only base-URL
