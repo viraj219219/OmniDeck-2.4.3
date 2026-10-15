@@ -55,6 +55,7 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: OmniDeck-2.4.3/package-lock.json
+          cache-dependency-path: OmniDeck-2.4.3/package-lock.json
       - name: Tools the native tests need
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-impress libreoffice-core curl dpkg gcc
       - run: npm ci
@@ -123,6 +124,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: OmniDeck-2.4.3/package-lock.json
 
       - name: Pinned LibreOffice version (single source of truth)
         shell: bash
@@ -236,12 +238,12 @@ jobs:
           name: omnideck-${{ matrix.id }}
           path: |
             OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.msi
-            ${{ matrix.bundle_dir }}/**/*-setup.exe
-            ${{ matrix.bundle_dir }}/**/*.dmg
-            ${{ matrix.bundle_dir }}/**/*.deb
-            ${{ matrix.bundle_dir }}/**/*.rpm
-            ${{ matrix.bundle_dir }}/**/*.AppImage
-            ${{ matrix.bundle_dir }}/**/*.sig
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*-setup.exe
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.dmg
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.deb
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.rpm
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.AppImage
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.sig
           if-no-files-found: error
 
   release-integrity:
