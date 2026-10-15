@@ -23,6 +23,7 @@ if (-not $nsis) {
     }
 
     $target = Join-Path ([IO.Path]::GetTempPath()) ("omnideck-nsis-" + [Guid]::NewGuid().ToString("N"))
+    $installRoot = $target
     try {
         # NSIS requires /D=... to be the final argument. Temp path has no spaces on
         # GitHub-hosted Windows runners, keeping this command line unambiguous.
@@ -37,29 +38,41 @@ if (-not $nsis) {
             Fail "silent NSIS installation failed with exit code $installExitCode"
         } else {
             Ok "NSIS installer completed a silent installation"
-            if (-not (Test-Path -LiteralPath (Join-Path $target "OmniDeck.exe"))) {
-                $entries = @(Get-ChildItem -LiteralPath $target -Force -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
-                Write-Host "Installer returned success but OmniDeck.exe is not in the requested install directory."
-                Write-Host "Install directory: $target"
-                Write-Host "Top-level entries: $($entries -join ', ')"
-                foreach ($candidateRoot in @("$env:ProgramFiles\OmniDeck", "$env:LOCALAPPDATA\Programs\OmniDeck")) {
-                    if (Test-Path -LiteralPath $candidateRoot) { Write-Host "Possible default install directory exists: $candidateRoot" }
+            if (-not (Test-Path -LiteralPath (Join-Path $installRoot "OmniDeck.exe"))) {
+                # Tauri's NSIS installer can select its machine-wide default in silent
+                # mode even when /D= is supplied. Validate the actual installed app,
+                # not an empty temporary override directory.
+                $candidateRoots = @(
+                    @(
+                        "$env:ProgramFiles\OmniDeck",
+                        "${env:ProgramFiles(x86)}\OmniDeck",
+                        "$env:LOCALAPPDATA\Programs\OmniDeck"
+                    ) | Where-Object { $_ -and (Test-Path -LiteralPath (Join-Path $_ "OmniDeck.exe")) }
+                )
+                if ($candidateRoots.Count -gt 0) {
+                    $installRoot = $candidateRoots[0]
+                    Write-Host "Installer used its default install directory: $installRoot"
+                } else {
+                    $entries = @(Get-ChildItem -LiteralPath $target -Force -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+                    Write-Host "Installer returned success but OmniDeck.exe was not found in the requested or known default install directories."
+                    Write-Host "Requested directory: $target"
+                    Write-Host "Top-level entries: $($entries -join ', ')"
+                    Fail "NSIS installer did not install OmniDeck.exe into a known install directory"
                 }
-                Fail "NSIS installer did not install OmniDeck.exe into the requested directory"
             }
-            $soffice = Get-ChildItem -Path $target -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue |
+            $soffice = Get-ChildItem -Path $installRoot -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue |
                 Where-Object { $_.FullName -match "resources\\(resources\\)?libreoffice\\program\\soffice\.exe$" } |
                 Select-Object -First 1
 
             if (-not $soffice) {
-                Fail "installed NSIS package does not contain bundled LibreOffice program\soffice.exe under: $target"
-                $candidates = @(Get-ChildItem -Path $target -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+                Fail "installed NSIS package does not contain bundled LibreOffice program\soffice.exe under: $installRoot"
+                $candidates = @(Get-ChildItem -Path $installRoot -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
                 if ($candidates.Count -gt 0) {
                     Write-Host "Found soffice.exe candidates at unexpected paths:"
                     $candidates | ForEach-Object { Write-Host "  $_" }
                 } else { Write-Host "No soffice.exe exists under the NSIS install root." }
             } else {
-                Ok "installed package contains $($soffice.FullName.Substring($target.Length))"
+                Ok "installed package contains $($soffice.FullName.Substring($installRoot.Length))"
                 $verOut = (Get-Item $soffice.FullName).VersionInfo.ProductVersion
                 if ($verOut -like "$version*") {
                     Ok "soffice.exe ProductVersion $verOut matches $version"
@@ -98,7 +111,7 @@ if (-not $nsis) {
     } finally {
         # The CI runner is disposable; still use the product's own uninstaller when
         # it exists, then remove leftovers. Ignore cleanup errors so they do not mask tests.
-        $uninstaller = Get-ChildItem -Path $target -Recurse -Filter unins*.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+        $uninstaller = Get-ChildItem -Path $installRoot -Recurse -Filter unins*.exe -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($uninstaller) {
             try { Start-Process -FilePath $uninstaller.FullName -ArgumentList @("/S") -Wait -NoNewWindow | Out-Null } catch {}
         }
