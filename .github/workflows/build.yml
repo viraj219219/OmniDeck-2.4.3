@@ -61,12 +61,29 @@ jobs:
       - run: npm run check
       - run: npm test
 
+  test-windows-vendor:
+    name: Windows LibreOffice vendoring tests
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: OmniDeck-2.4.3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: OmniDeck-2.4.3/package-lock.json
+      - run: npm ci
+      - name: Run Windows-native vendoring tests
+        run: node tests/vendor-libreoffice-windows.test.mjs
+
   build:
     defaults:
       run:
         working-directory: OmniDeck-2.4.3
     name: Build (${{ matrix.label }})
-    needs: test-frontend
+    needs: [test-frontend, test-windows-vendor]
     permissions:
       contents: write   # tauri-action attaches installers to the draft release on tags
     strategy:
