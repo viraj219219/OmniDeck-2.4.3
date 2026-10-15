@@ -15,10 +15,10 @@ const assetMapPath = arg("asset-map");
 const assetIds = new Map();
 if (assetMapPath) {
   for (const line of readFileSync(assetMapPath, "utf8").split(/\r?\n/)) {
-    const [rawId, ...parts] = line.split("\\t");
+    const [rawId, ...parts] = line.split("\t");
     const id = rawId?.trim();
-    const name = parts.join("\\t").trim();
-    if (/^\\d+$/.test(id || "") && name) assetIds.set(id, name);
+    const name = parts.join("\t").trim();
+    if (/^\d+$/.test(id || "") && name) assetIds.set(id, name);
   }
 }
 const version = arg("version");
@@ -33,7 +33,7 @@ for (const key of REQUIRED_PLATFORMS) {
   if (!entry.signature || entry.signature.length < 40) problems.push(`${key}: missing/short signature`);
   let url; try { url = new URL(entry.url); } catch { problems.push(`${key}: invalid url`); continue; }
   if (url.protocol !== "https:") problems.push(`${key}: url is not https`);
-  const assetApi = url.pathname.match(/^\\/repos\\/[^/]+\\/[^/]+\\/releases\\/assets\\/(\\d+)\\/?$/);
+  const assetApi = url.pathname.match(/^\/repos\/[^/]+\/[^/]+\/releases\/assets\/(\d+)\/?$/);
   let file;
   if (assetApi) {
     if (url.hostname !== "api.github.com") { problems.push(`${key}: release asset API URL is not api.github.com`); continue; }
