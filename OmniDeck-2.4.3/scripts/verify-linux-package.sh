@@ -23,18 +23,18 @@ APPIMG="$(one appimage/*.AppImage)"
 
 if [ -n "$DEB" ]; then
   listing="$(dpkg-deb -c "$DEB" 2>/dev/null || true)"
-  if printf '%s\n' "$listing" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice\.bin$'; then
+  if printf '%s\n' "$listing" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice\.bin$' >/dev/null; then
     ok "deb contains soffice.bin"
   else
     fail "deb does not contain the bundled soffice.bin"
     printf '%s\n' "$listing" | grep -E 'soffice(\.bin)?$|libreoffice' | head -n 80 >&2 || true
   fi
-  if printf '%s\n' "$listing" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice$'; then
+  if printf '%s\n' "$listing" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice$' >/dev/null; then
     ok "deb contains the soffice launcher"
   else
     fail "deb does not contain the bundled soffice launcher"
   fi
-  if printf '%s\n' "$listing" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice\.bin; then
+  if printf '%s\n' "$listing" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice\.bin$' | grep -E '^-rwx' >/dev/null; then
     ok "soffice.bin keeps its executable bit in the deb"
   else
     fail "soffice.bin lost its executable bit in the deb"
@@ -42,7 +42,7 @@ if [ -n "$DEB" ]; then
   depends="$(dpkg-deb -f "$DEB" Depends 2>/dev/null || true)"
   [ -n "$depends" ] && ok "deb declares Depends ($(printf '%s' "$depends" | tr ',' '\n' | wc -l) entries)" || fail "deb has no Depends: runtime libraries are undeclared (was scripts/linux-runtime-depends.sh run before the build?)"
   printf '%s' "$depends" | grep 'libc6' >/dev/null || fail "deb Depends lacks libc6 (list looks incomplete)"
-  if printf '%s' "$depends" | grep -E 'libreoffice(-impress|-core)'; then
+  if printf '%s' "$depends" | grep -E 'libreoffice(-impress|-core)' >/dev/null; then
     fail "deb depends on a SYSTEM LibreOffice, which defeats the bundled runtime"
   else
     ok "deb does not depend on a system LibreOffice"
@@ -51,9 +51,9 @@ fi
 
 if [ -n "$RPM" ]; then
   if command -v rpm >/dev/null 2>&1; then
-    if rpm -qpl "$RPM" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice\.bin$'; then ok "rpm contains soffice.bin"; else fail "rpm does not contain the bundled soffice.bin"; fi
+    if rpm -qpl "$RPM" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice\.bin$' >/dev/null; then ok "rpm contains soffice.bin"; else fail "rpm does not contain the bundled soffice.bin"; fi
     req="$(rpm -qpR "$RPM" 2>/dev/null || true)"
-    printf '%s\n' "$req" | grep -q '\.so' && ok "rpm declares shared-library requirements" || fail "rpm declares no soname requirements"
+    printf '%s\n' "$req" | grep -E '\.so' >/dev/null && ok "rpm declares shared-library requirements" || fail "rpm declares no soname requirements"
     if printf '%s\n' "$req" | grep -Ei '^libreoffice' >/dev/null; then fail "rpm requires a SYSTEM LibreOffice"; else ok "rpm does not require a system LibreOffice"; fi
   else
     fail "rpm tool not installed on this runner, so the rpm could not be inspected (apt-get install rpm)"
@@ -110,7 +110,7 @@ echo "Linux package verification passed."
   depends="$(dpkg-deb -f "$DEB" Depends 2>/dev/null || true)"
   [ -n "$depends" ] && ok "deb declares Depends ($(printf '%s' "$depends" | tr ',' '\n' | wc -l) entries)" || fail "deb has no Depends: runtime libraries are undeclared (was scripts/linux-runtime-depends.sh run before the build?)"
   printf '%s' "$depends" | grep -q 'libc6' || fail "deb Depends lacks libc6 (list looks incomplete)"
-  if printf '%s' "$depends" | grep -E 'libreoffice(-impress|-core)'; then
+  if printf '%s' "$depends" | grep -E 'libreoffice(-impress|-core)' >/dev/null; then
     fail "deb depends on a SYSTEM LibreOffice, which defeats the bundled runtime"
   else
     ok "deb does not depend on a system LibreOffice"
@@ -119,10 +119,10 @@ fi
 
 if [ -n "$RPM" ]; then
   if command -v rpm >/dev/null 2>&1; then
-    if rpm -qpl "$RPM" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice\.bin$'; then ok "rpm contains soffice.bin"; else fail "rpm does not contain the bundled soffice.bin"; fi
+    if rpm -qpl "$RPM" | grep -E '/resources/libreoffice/opt/libreoffice[0-9.]*/program/soffice\.bin$' >/dev/null; then ok "rpm contains soffice.bin"; else fail "rpm does not contain the bundled soffice.bin"; fi
     req="$(rpm -qpR "$RPM" 2>/dev/null || true)"
-    printf '%s\n' "$req" | grep -q '\.so' && ok "rpm declares shared-library requirements" || fail "rpm declares no soname requirements"
-    if printf '%s\n' "$req" | grep -Eqi '^libreoffice'; then fail "rpm requires a SYSTEM LibreOffice"; else ok "rpm does not require a system LibreOffice"; fi
+    printf '%s\n' "$req" | grep -E '\.so' >/dev/null && ok "rpm declares shared-library requirements" || fail "rpm declares no soname requirements"
+    if printf '%s\n' "$req" | grep -Ei '^libreoffice' >/dev/null; then fail "rpm requires a SYSTEM LibreOffice"; else ok "rpm does not require a system LibreOffice"; fi
   else
     fail "rpm tool not installed on this runner, so the rpm could not be inspected (apt-get install rpm)"
   fi
