@@ -28,8 +28,11 @@ if (-not $nsis) {
         # GitHub-hosted Windows runners, keeping this command line unambiguous.
         # Invoke the installer directly so PowerShell passes NSIS's /D=... argument
         # unchanged; /D must be the final argument and overrides the install directory.
-        & $nsis.FullName /S "/D=$target"
-        $installExitCode = $LASTEXITCODE
+        # Start-Process exposes the child process exit code reliably under StrictMode.
+        # Reading $LASTEXITCODE after a direct invocation can itself throw when PowerShell
+        # did not populate that automatic variable, masking the actual installer result.
+        $installProcess = Start-Process -FilePath $nsis.FullName -ArgumentList @("/S", "/D=$target") -Wait -PassThru -NoNewWindow
+        $installExitCode = $installProcess.ExitCode
         if ($installExitCode -ne 0) {
             Fail "silent NSIS installation failed with exit code $installExitCode"
         } else {
