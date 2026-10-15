@@ -1,6 +1,6 @@
 name: Pin LibreOffice checksums (manual)
 
-# Run this ONCE per LibreOffice version bump (Actions -> "Pin LibreOffice checksums" -> Run workflow).
+# Runs on PRs to validate/discover platform hashes and can also be manually dispatched after merge.
 # It downloads the official archive for every platform on a NATIVE runner using the real vendoring
 # scripts in discovery mode, and prints the SHA-256 lines to paste into scripts/lib/vendor-common.sh
 # (Linux/macOS) — it never produces a bundle and never edits the repository.
@@ -15,6 +15,8 @@ name: Pin LibreOffice checksums (manual)
 # re-derives it so you can see whether it still matches.
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       version:
