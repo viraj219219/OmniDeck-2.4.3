@@ -176,8 +176,8 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   const apiMap = Object.entries(files).map(([key, file], i) => {
     const id = String(7001 + i);
     apiGood.platforms[key].url = `https://api.github.com/repos/acme/omnideck/releases/assets/${id}`;
-    return `${id}\\t${file}`;
-  }).join("\\n");
+    return `${id}\t${file}`;
+  }).join("\n");
   r = await vr(apiGood, assets, apiMap); check("Tauri GitHub API asset IDs resolve to attached filenames", r.status === 0, r.all);
   r = await vr(apiGood, assets, ""); check("API asset URL without an ID mapping fails closed", r.status === 1 && /missing from --asset-map/.test(r.all), r.all);
   const drop = structuredClone(good); delete drop.platforms["darwin-aarch64"]; r = await vr(drop); check("manifest missing a platform fails", r.status === 1 && /darwin-aarch64/.test(r.all));
