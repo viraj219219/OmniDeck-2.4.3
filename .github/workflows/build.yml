@@ -2,7 +2,7 @@ name: Build, Test & Release
 
 # One workflow that tests OmniDeck and builds every installer on a NATIVE runner:
 #
-#   Windows 10/11 x64        windows-latest      -> NSIS .exe + .msi
+#   Windows 10/11 x64        windows-latest      -> NSIS .exe
 #   macOS Intel              macos-15-intel      -> .dmg  (x86_64-apple-darwin)
 #   macOS Apple Silicon      macos-15            -> .dmg  (aarch64-apple-darwin)
 #   Linux x86_64             ubuntu-22.04        -> .deb .rpm .AppImage
@@ -256,7 +256,6 @@ jobs:
         with:
           name: omnideck-${{ matrix.id }}
           path: |
-            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.msi
             OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*-setup.exe
             OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.dmg
             OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.deb
