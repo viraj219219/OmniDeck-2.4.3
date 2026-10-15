@@ -125,7 +125,12 @@ if (!pwsh) {
   // process semantics. Keep this behavioural assertion on a Windows runner;
   // Linux still exercises parsing, static guards, and the platform-neutral
   // resumable-download helpers above.
-  if (process.platform === "win32" && which("true") && which("false") && which("sleep")) {
+  if (process.platform === "win32" && which("cmd.exe") && which("ping.exe")) {
+    const cmd = q(which("cmd.exe"));
+    const ping = q(which("ping.exe"));
+    const r = await ps(`$global:LASTEXITCODE = 5; $ok = Invoke-NativeCapture -FilePath '${cmd}' -Arguments @('/c','exit','0'); $global:LASTEXITCODE = 0; $bad = Invoke-NativeCapture -FilePath '${cmd}' -Arguments @('/c','exit','1'); $slow = Invoke-NativeCapture -FilePath '${ping}' -Arguments @('-n','30','127.0.0.1') -TimeoutSeconds 1; "$($ok.ExitCode)|$($bad.ExitCode)|$($slow.TimedOut)"`);
+    check("Invoke-NativeCapture: real exit codes (stale $LASTEXITCODE ignored) and timeout kill", r.stdout.trim() === "0|1|True", r.all);
+  } else if (process.platform !== "win32" && which("true") && which("false") && which("sleep")) {
     const r = await ps(`$global:LASTEXITCODE = 5; $ok = Invoke-NativeCapture -FilePath '${which("true")}'; $global:LASTEXITCODE = 0; $bad = Invoke-NativeCapture -FilePath '${which("false")}'; $slow = Invoke-NativeCapture -FilePath '${which("sleep")}' -Arguments @('30') -TimeoutSeconds 1; "$($ok.ExitCode)|$($bad.ExitCode)|$($slow.TimedOut)"`);
     check("Invoke-NativeCapture: real exit codes (stale $LASTEXITCODE ignored) and timeout kill", r.stdout.trim() === "0|1|True", r.all);
   }
