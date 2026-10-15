@@ -1110,8 +1110,15 @@ mod tests {
         let roots = bundled_runtime_roots(&exe_dir, Some(&res), TargetOs::Linux);
         assert_eq!(find_bundled_soffice(&roots, TargetOs::Linux), Some(soffice.clone()));
         // Even if Tauri's resource dir were unavailable, the lib/<productName> fallback finds it.
+        // This fallback deliberately contains exe_dir/../lib; compare canonical paths so
+        // the test checks file identity rather than requiring a normalized path spelling.
         let fallback = bundled_runtime_roots(&exe_dir, None, TargetOs::Linux);
-        assert_eq!(find_bundled_soffice(&fallback, TargetOs::Linux), Some(soffice));
+        let found_fallback = find_bundled_soffice(&fallback, TargetOs::Linux);
+        assert_eq!(
+            found_fallback.map(|p| std::fs::canonicalize(p).unwrap()),
+            Some(std::fs::canonicalize(soffice).unwrap()),
+            "exe-relative fallback should resolve to the installed resource even when its path contains .."
+        );
         let _ = std::fs::remove_dir_all(&root);
     }
 

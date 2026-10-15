@@ -111,7 +111,9 @@ jobs:
             platform: windows-latest
             os: windows
             arch: x86_64
-            tauri_args: ""
+            # Build the requested NSIS .exe. WiX MSI linking stalls on the very large
+            # bundled LibreOffice tree; the NSIS installer is the supported release artifact.
+            tauri_args: "--bundles nsis"
             rust_targets: ""
             bundle_dir: src-tauri/target/release/bundle
           - label: "macOS Intel"
