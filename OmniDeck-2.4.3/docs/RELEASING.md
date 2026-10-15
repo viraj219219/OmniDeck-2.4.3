@@ -74,14 +74,14 @@ Local unsigned builds have no updater (it is registered only when a public key i
 * Windows 10+ (LibreOffice 26.x; WebView2 bootstrapper is embedded).
 * Linux: build on Ubuntu 22.04 (glibc 2.35 ≥ LibreOffice's 2.27 floor). `.deb`/`.rpm` dependency lists are
   *generated from the bundled binaries* (`scripts/linux-runtime-depends.sh`), not guessed.
-* In-app updates: Windows (NSIS/MSI), macOS, Linux **AppImage** only. `.deb`/`.rpm` installs are told a new
+* In-app updates: Windows (NSIS `.exe`), macOS, Linux **AppImage** only. `.deb`/`.rpm` installs are told a new
   version exists and to download it (the OS package manager owns those files).
 
 ## 5. What CI proves vs. what only a person can
 | Check | Status |
 |---|---|
 | JS/script/Rust-source unit tests, vendor-script behaviour, release gates | Run in CI on every push |
-| Bundled LibreOffice present, right version/arch, converts a real .pptx — **inside the built installer** (deb installed with `apt`; MSI unpacked; DMG mounted) | Run in CI on native runners |
+| Bundled LibreOffice present, right version/arch, converts a real .pptx — **inside the built installer** (deb installed with `apt`; NSIS silently installed; DMG mounted) | Run in CI on native runners |
 | `cargo check` / `cargo test` | Run in CI |
 | Updater manifest completeness + signatures present | Run on tag builds |
 | **Signed update actually installs N → N+1** | **Manual** (needs two published signed releases) |

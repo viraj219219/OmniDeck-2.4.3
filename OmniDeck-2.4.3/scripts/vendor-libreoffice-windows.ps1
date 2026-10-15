@@ -431,7 +431,7 @@ try {
     Assert-LibreOfficeVersion -Soffice (Join-Path $destStage "program\soffice.com") -Expected $Version
     Invoke-SmokeConversion -Soffice (Join-Path $destStage "program\soffice.com") -Fixture $fixture -ExpectedPages $SmokePages
 
-    @("libreoffice_version=$Version", "platform=windows-x86_64", "source_url=$url", "archive_sha256=$expectedHash",
+    @("libreoffice_version=$Version", "platform=windows-x86_64", "source_url=$url", "archive_sha256=$($expectedHash.ToLowerInvariant())",
       "launcher=program\soffice.exe") | Set-Content -LiteralPath (Join-Path $destStage "OMNIDECK-LIBREOFFICE.txt") -Encoding ASCII
 
     # Swap, then re-verify the installed copy; roll back on any failure.

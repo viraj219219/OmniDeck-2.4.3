@@ -29,7 +29,7 @@ const sh = (f) => read(f).match(/LIBREOFFICE_VERSION:-([0-9.]+)/)?.[1];
 check("linux/macOS scripts default to the pinned version", sh("scripts/vendor-libreoffice-linux.sh") === loV && sh("scripts/vendor-libreoffice-macos.sh") === loV);
 check("npm wrapper defaults to the pinned version", [...read("scripts/vendor-libreoffice.mjs").matchAll(/\|\| "([0-9.]+)"/g)].every((m) => m[1] === loV));
 check("Windows script default + pin entry use the pinned version", new RegExp(`\\[string\\]\\$Version = "${loV.replace(/\./g, "\\.")}"`).test(read("scripts/vendor-libreoffice-windows.ps1")) && read("scripts/vendor-libreoffice-windows.ps1").includes(`"${loV}" = "`));
-const wf = read(".github/workflows/build.yml");
+const wf = read("../.github/workflows/build.yml");
 check("workflow reads the version from the file (no literal LibreOffice version in the workflow)", /libreoffice-version\.txt/.test(wf) && !/24\.8\.4/.test(wf) && !/LIBREOFFICE_VERSION:\s*"/.test(wf));
 
 // ---------- 3. lockfile integrity (offline stand-in for `npm ci`) ----------
@@ -52,6 +52,7 @@ check("workflow reads the version from the file (no literal LibreOffice version 
 {
   const ids = [...wf.matchAll(/^\s+id: ([a-z0-9_-]+)$/gm)].map((m) => m[1]);
   check("five native build targets", ["linux-x86_64", "linux-aarch64", "windows-x86_64", "macos-x86_64", "macos-aarch64"].every((i) => ids.includes(i)));
+  check("tag builds serialize tauri-action updater JSON uploads while PR builds stay parallel", wf.includes("max-parallel: ${{ startsWith(github.ref, 'refs/tags/v') && 1 || 5 }}"));
   check("macOS is per-architecture on verified runners (no universal build)", /macos-15-intel/.test(wf) && /runs-on|platform: macos-15\b/.test(wf) && !/universal-apple-darwin/.test(strip(wf)));
   const i = (s) => wf.indexOf(s);
   check("pdf.js is vendored in strict mode before the build", /vendor-pdfjs\.mjs --strict/.test(wf) && i("vendor-pdfjs.mjs --strict") < i("Build installers"));
@@ -59,9 +60,18 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   check("input gate runs before building and Linux deps are generated before it", i("verify-release-inputs.mjs") > i("linux-runtime-depends.sh") && i("verify-release-inputs.mjs") < i("Build installers (PR"));
   check("built-package verification exists for all three OS families", ["verify-linux-package.sh", "verify-windows-package.ps1", "verify-macos-package.sh"].every((s) => i(s) > i("Build, sign and attach")));
   check("cargo test and cargo check run", /cargo test --manifest-path/.test(wf) && /cargo check --manifest-path/.test(wf));
+  check("Rust cache points to the nested Tauri workspace", wf.includes("workspaces: OmniDeck-2.4.3/src-tauri"));
+  check("unsigned macOS CI build preserves vendor code signatures with --no-sign", wf.includes("run: npx tauri build --no-sign"));
+  check("unsigned macOS tag build does not re-sign nested vendor apps", wf.includes("secrets.APPLE_CERTIFICATE == '' && '--no-sign'"));
+  const macVerifier = read("scripts/verify-macos-package.sh");
+  check("macOS package conversion timeout is portable (no GNU timeout dependency)", /python3 -/.test(macVerifier) && !/\btimeout 300\b/.test(macVerifier));
+  check("macOS bundle signature failures print codesign diagnostics", /codesign --verify --deep --strict --verbose=2 "\$LO"/.test(macVerifier));
   check("skips are failures in the frontend job", /OMNIDECK_REQUIRE_NATIVE_TESTS: "1"/.test(wf));
   check("tag builds require updater signing inputs", /--require-updater/.test(wf) && /TAURI_SIGNING_PRIVATE_KEY: \$\{\{ secrets\.TAURI_SIGNING_PRIVATE_KEY \}\}/.test(wf) && /write-updater-config\.mjs/.test(wf));
   check("release is a DRAFT and its updater manifest is validated before publishing", /releaseDraft: true/.test(wf) && /verify-release-assets\.mjs/.test(wf) && /release-integrity/.test(wf));
+  check("release integrity maps Tauri API asset URLs to attached filenames", wf.includes("assets-map.tsv") && /--asset-map assets-map\.tsv/.test(wf));
+  check("Tauri release uses v1 with its renamed updater upload inputs", wf.includes("uses: tauri-apps/tauri-action@v1") && wf.includes("uploadUpdaterJson: true") && wf.includes("uploadUpdaterSignatures: true"));
+  check("Tauri release explicitly uploads updater JSON and signature files", wf.includes("uploadUpdaterJson: true") && wf.includes("uploadUpdaterSignatures: true"));
   check("no secret or private key is echoed to logs", !/echo.*\$\{\{ *secrets\./.test(wf));
 }
 
@@ -70,7 +80,11 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   const t = json("src-tauri/tauri.conf.json"), s = JSON.stringify(t);
   check("macOS minimum is 11.0 (LibreOffice 26.x requirement; was 10.15)", t.bundle.macOS.minimumSystemVersion === "11.0");
   check("deb/rpm no longer 'recommend' a system LibreOffice/Poppler", !t.bundle.linux && !/libreoffice-impress|poppler-utils/.test(s));
-  check("LibreOffice resources are bundled", t.bundle.resources["resources/libreoffice/**/*"] === "resources/libreoffice/");
+  check("LibreOffice resources are bundled with directory structure preserved", Array.isArray(t.bundle.resources) && t.bundle.resources.includes("resources/libreoffice/"));
+  const mac = json("src-tauri/tauri.macos.conf.json");
+  check("macOS avoids resource glob-copying the signed LibreOffice app", Array.isArray(mac.bundle.resources) && mac.bundle.resources.length === 0 && mac.bundle.macOS.files["Frameworks/LibreOffice.app"] === "resources/libreoffice/LibreOffice.app");
+  check("both macOS architectures use the signature-preserving config", wf.includes('tauri_args: "--config src-tauri/tauri.macos.conf.json --target x86_64-apple-darwin"') && wf.includes('tauri_args: "--config src-tauri/tauri.macos.conf.json --target aarch64-apple-darwin"'));
+
   check("base config has no updater key and no updater artifacts (release-only override)", !t.plugins?.updater && !t.bundle.createUpdaterArtifacts);
   const caps = readdirSync(join(root, "src-tauri/capabilities")).map((f) => json(`src-tauri/capabilities/${f}`));
   const up = caps.find((c) => c.identifier === "updater");
@@ -78,7 +92,7 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   check("default capability does NOT grant updater to the audience window", !JSON.stringify(caps.find((c) => c.identifier === "default")).includes("updater"));
   const cargo = read("src-tauri/Cargo.toml");
   check("updater crate is a dependency", /tauri-plugin-updater = "2"/.test(cargo));
-  const files = ["src-tauri/tauri.conf.json", ".github/workflows/build.yml", "scripts/write-updater-config.mjs", "src-tauri/src/main.rs"];
+  const files = ["src-tauri/tauri.conf.json", "../.github/workflows/build.yml", "scripts/write-updater-config.mjs", "src-tauri/src/main.rs"];
   check("no private signing key material is committed", files.every((f) => !/-----BEGIN [A-Z ]*PRIVATE KEY-----|untrusted comment: minisign encrypted secret key|RWRTY0I/.test(read(f))));
 }
 
@@ -153,8 +167,22 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   const files = { "linux-x86_64": "a.AppImage", "linux-aarch64": "b.AppImage", "windows-x86_64": "c-setup.exe", "darwin-x86_64": "d.app.tar.gz", "darwin-aarch64": "e.app.tar.gz" };
   const good = { version: pkgV, platforms: Object.fromEntries(Object.entries(files).map(([k, f]) => plat(k, f))) };
   const assets = Object.values(files).flatMap((f) => [f, `${f}.sig`]).join("\n");
-  const vr = async (latest, a = assets) => { writeFileSync(join(d, "l.json"), JSON.stringify(latest)); writeFileSync(join(d, "a.txt"), a); return run("node", [join(root, "scripts/verify-release-assets.mjs"), "--latest", join(d, "l.json"), "--assets", join(d, "a.txt"), "--version", pkgV]); };
+  const vr = async (latest, a = assets, map = undefined) => {
+    writeFileSync(join(d, "l.json"), JSON.stringify(latest));
+    writeFileSync(join(d, "a.txt"), a);
+    const args = [join(root, "scripts/verify-release-assets.mjs"), "--latest", join(d, "l.json"), "--assets", join(d, "a.txt"), "--version", pkgV];
+    if (map !== undefined) { writeFileSync(join(d, "assets-map.tsv"), map); args.push("--asset-map", join(d, "assets-map.tsv")); }
+    return run("node", args);
+  };
   r = await vr(good); check("a complete, signed manifest passes", r.status === 0, r.all);
+  const apiGood = structuredClone(good);
+  const apiMap = Object.entries(files).map(([key, file], i) => {
+    const id = String(7001 + i);
+    apiGood.platforms[key].url = `https://api.github.com/repos/acme/omnideck/releases/assets/${id}`;
+    return `${id}\t${file}`;
+  }).join("\n");
+  r = await vr(apiGood, assets, apiMap); check("Tauri GitHub API asset IDs resolve to attached filenames", r.status === 0, r.all);
+  r = await vr(apiGood, assets, ""); check("API asset URL without an ID mapping fails closed", r.status === 1 && /missing from --asset-map/.test(r.all), r.all);
   const drop = structuredClone(good); delete drop.platforms["darwin-aarch64"]; r = await vr(drop); check("manifest missing a platform fails", r.status === 1 && /darwin-aarch64/.test(r.all));
   const nosig = structuredClone(good); nosig.platforms["linux-x86_64"].signature = ""; r = await vr(nosig); check("manifest entry without a signature fails", r.status === 1 && /signature/.test(r.all));
   r = await vr(good, assets.split("\n").filter((l) => l !== "c-setup.exe").join("\n")); check("manifest pointing at an asset that isn't attached fails", r.status === 1 && /not attached/.test(r.all));

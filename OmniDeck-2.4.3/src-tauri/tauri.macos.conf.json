@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "resources": [],
+    "macOS": {
+      "files": {
+        "Frameworks/LibreOffice.app": "resources/libreoffice/LibreOffice.app"
+      }
+    }
+  }
+}

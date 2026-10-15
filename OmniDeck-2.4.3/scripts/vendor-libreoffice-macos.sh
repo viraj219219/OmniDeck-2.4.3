@@ -92,8 +92,14 @@ STAGED_TEAM="$(codesign -dv --verbose=2 "$STAGE/LibreOffice.app" 2>&1 | sed -n '
 ARCHS="$(lipo -archs "$STAGED" 2>&1)" || vo_die "lipo could not read $STAGED: $ARCHS"
 case " $ARCHS " in *" $MACHO_ARCH "*) ;; *) vo_die "soffice architectures are '$ARCHS', expected '$MACHO_ARCH'" ;; esac
 
-vo_expect_version "$STAGED" "$VERSION" 180
-vo_smoke_convert "$STAGED" "$FIXTURE" "$SMOKE_PAGES"
+# Keep the signed staged app pristine: smoke-test a disposable copy so first-launch
+# caches cannot alter the signed bundle that will be installed.
+SMOKE_APP="$WORK/LibreOffice-smoke.app"
+ditto "$STAGE/LibreOffice.app" "$SMOKE_APP"
+SMOKE_SOFFICE="$SMOKE_APP/Contents/MacOS/soffice"
+vo_expect_version "$SMOKE_SOFFICE" "$VERSION" 180
+vo_smoke_convert "$SMOKE_SOFFICE" "$FIXTURE" "$SMOKE_PAGES"
+codesign --verify --deep --strict "$STAGE/LibreOffice.app" || vo_die "staged signed app changed during smoke validation"
 
 {
   echo "libreoffice_version=$VERSION"

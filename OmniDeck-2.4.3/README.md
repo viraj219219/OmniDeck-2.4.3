@@ -23,7 +23,7 @@ No React/Vue, no bundler, no build step for the UI itself.
   OS's own webview (WebView2 on Windows, WebKitGTK on Linux), not a
   bundled Chromium.
 - **Windows + Ubuntu + Linux Mint** — Tauri v2 targets all three from one
-  codebase: `.msi`/NSIS `.exe` on Windows, `.deb`/`.AppImage` on Linux.
+  codebase: NSIS `.exe` on Windows, `.deb`/`.AppImage` on Linux.
 - **Fullscreen presentation support** — native OS fullscreen via
   `set_presentation_fullscreen` in `src-tauri/src/main.rs`.
 - **Reliable file handling** — the `dialog` and `fs` plugins give a native
@@ -43,10 +43,10 @@ omnideck/
 ├── src-tauri/                     # Rust shell (thin — see main.rs comments)
 │   ├── Cargo.toml / Cargo.lock
 │   ├── build.rs
-│   ├── tauri.conf.json            # bundle targets: deb, appimage, nsis, msi
+│   ├── tauri.conf.json            # bundle targets: deb, appimage, nsis
 │   ├── capabilities/default.json  # least-privilege Tauri v2 ACL
 │   ├── icons/                     # real OmniDeck brand icon (32/128/128@2x
-│   │                               #   + icon.ico for Windows NSIS/MSI)
+│   │                               #   + icon.ico for Windows NSIS)
 │   └── src/main.rs                # windows, monitors, audience display,
 │                                   # PPTX/PDF/DOCX conversion commands
 ├── tests/                         # node-based service/unit tests (no
@@ -137,9 +137,9 @@ all of the following and attaches them, with a `SHA256SUMS` file, to a
 
 | Platform | Installer(s) | Notes |
 |---|---|---|
-| **Windows 11 / Windows 10** (x64, 1809+) | `OmniDeck_*_x64-setup.exe` (NSIS, per-user or all-users) and `OmniDeck_*_x64_en-US.msi` | Same installer for 10 and 11. Installs the WebView2 runtime if the machine lacks it (needs internet only in that case; Windows 11 and updated Windows 10 already have it). |
-| **macOS 10.15+** (Intel + Apple Silicon) | `OmniDeck_*_universal.dmg` | One universal build. |
-| **Linux x86_64 / arm64 — Debian, Ubuntu, Linux Mint, Pop!_OS, …** | `.deb` | Recommends LibreOffice Impress + Poppler for import. |
+| **Windows 11 / Windows 10** (x64, 1809+) | NSIS `OmniDeck_*_x64-setup.exe` (per-user or all-users) | Same installer for 10 and 11. Installs the WebView2 runtime if the machine lacks it (needs internet only in that case; Windows 11 and updated Windows 10 already have it). |
+| **macOS 11+** (Intel + Apple Silicon) | Separate Intel and Apple Silicon `.dmg` installers | One native build per architecture; LibreOffice is bundled for the matching CPU architecture. |
+| **Linux x86_64 / arm64 — Debian, Ubuntu, Linux Mint, Pop!_OS, …** | `.deb` | Bundles LibreOffice; its shared-library dependencies are generated and checked in CI. |
 | **Linux — Fedora, RHEL/Rocky/Alma, openSUSE, …** | `.rpm` | Same recommendations. |
 | **Linux — any other distro (Arch, Manjaro, …)** | `.AppImage` | `chmod +x` and run; needs WebKitGTK 4.1 + GTK 3 on the system. |
 
@@ -312,8 +312,8 @@ the Openbox window manager). Only what was actually run is claimed:
 - [x] `npx tauri build` on Linux — `.deb`, `.rpm` and `.AppImage` built; the `.deb` was installed and launched, the `.AppImage` was launched, the `.rpm` metadata was inspected (not installed: no RPM-based OS here).
 
 **Not performed here:**
-- Windows 10/11 and macOS: the Windows `.msi` / NSIS `.exe` and the macOS
-  `.dmg` cannot be built on Linux, so they were **not built or run here**.
+- Windows 10/11 and macOS: the Windows NSIS `.exe` and the macOS `.dmg`
+  cannot be built on Linux, so they were **not built or run here**.
   The `cfg(windows)` / macOS code paths (console-window suppression, PATH
   handling, Homebrew lookup) are compiled and tested only by the CI matrix
   in `.github/workflows/build.yml` — push a `v*` tag to produce them.
@@ -386,8 +386,8 @@ each is actually run. Do not mark a cell done from static review alone.)
 Built from THIS (fixed) source with `npm run build` on Ubuntu 24.04, Rust 1.89:
 `OmniDeck_2.2.0_amd64.deb`, `OmniDeck-2.2.0-1.x86_64.rpm`,
 `OmniDeck_2.2.0_amd64.AppImage`, plus `SHA256SUMS`
-(`sha256sum -c SHA256SUMS` inside that folder). Windows (.msi/.exe) and macOS
-(.dmg) installers are NOT included: they can only be built on those operating
+(`sha256sum -c SHA256SUMS` inside that folder). Windows NSIS `.exe` and macOS
+`.dmg` installers are NOT included: they can only be built on those operating
 systems — push this source to GitHub and run the `build` workflow. The
 `verification-screenshots/` are from the original v2.2 verification run
 (before the audit fixes) and are kept for reference.

@@ -82,6 +82,7 @@ check("the JS close handler listens for exactly the event Rust emits (app:close-
 const confWindows = (conf.app?.windows || []).map((w) => w.label || "main");
 const rustWindows = [...rust.matchAll(/WebviewWindowBuilder::new\([^,]+,\s*"([^"]+)"/g)].map((m) => m[1]);
 for (const w of caps.windows) check(`capability window "${w}" exists (tauri.conf or created in Rust)`, confWindows.includes(w) || rustWindows.includes(w));
+check("LibreOffice directory is bundled with its folder structure preserved", Array.isArray(conf.bundle?.resources) && conf.bundle.resources.includes("resources/libreoffice/")); 
 check("withGlobalTauri enabled (vanilla JS uses window.__TAURI__)", conf.app?.withGlobalTauri === true);
 check("close interception only guards the main window", /window\.label\(\)\s*!=\s*"main"/.test(rust));
 

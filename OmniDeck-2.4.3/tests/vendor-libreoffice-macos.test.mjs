@@ -20,6 +20,7 @@ const checks = [
   ["checks Gatekeeper/notarization (spctl)", /spctl --assess/.test(script), true],
   ["checks Mach-O architecture with lipo", /lipo -archs/.test(script), true],
   ["runs a real conversion before swapping", /vo_smoke_convert/.test(script) && /vo_swap/.test(script), true],
+  ["smoke-tests a disposable app copy to preserve the signed staged bundle", /LibreOffice-smoke\.app/.test(script) && /staged signed app changed during smoke validation/.test(script), true],
   ["validates the official app signature", /codesign --verify --deep --strict/, script],
   ["preserves the complete app bundle", /ditto "\$APP" "\$STAGE\/LibreOffice\.app"/, script],
   ["validates staged soffice", /Contents\/MacOS\/soffice/.test(script) && /--version/.test(script), true],

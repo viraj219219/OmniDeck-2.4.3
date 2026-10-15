@@ -241,6 +241,9 @@ pub fn bundled_runtime_roots(exe_dir: &Path, resource_dir: Option<&Path>, os: Ta
             }
         }
         TargetOs::MacOs => {
+            // Keep LibreOffice's signed nested app under Contents/Frameworks. Tauri's
+            // resource-copy pipeline can flatten framework symlinks and invalidate signatures.
+            roots.push(exe_dir.join("..").join("Frameworks"));
             roots.push(exe_dir.join("..").join("Resources").join("resources").join("libreoffice"));
             roots.push(exe_dir.join("..").join("Resources").join("libreoffice"));
         }
@@ -1110,8 +1113,15 @@ mod tests {
         let roots = bundled_runtime_roots(&exe_dir, Some(&res), TargetOs::Linux);
         assert_eq!(find_bundled_soffice(&roots, TargetOs::Linux), Some(soffice.clone()));
         // Even if Tauri's resource dir were unavailable, the lib/<productName> fallback finds it.
+        // This fallback deliberately contains exe_dir/../lib; compare canonical paths so
+        // the test checks file identity rather than requiring a normalized path spelling.
         let fallback = bundled_runtime_roots(&exe_dir, None, TargetOs::Linux);
-        assert_eq!(find_bundled_soffice(&fallback, TargetOs::Linux), Some(soffice));
+        let found_fallback = find_bundled_soffice(&fallback, TargetOs::Linux);
+        assert_eq!(
+            found_fallback.map(|p| std::fs::canonicalize(p).unwrap()),
+            Some(std::fs::canonicalize(soffice).unwrap()),
+            "exe-relative fallback should resolve to the installed resource even when its path contains .."
+        );
         let _ = std::fs::remove_dir_all(&root);
     }
 
@@ -1130,11 +1140,11 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
-    fn macos_bundle_layout_is_found_inside_contents_resources() {
+    fn macos_bundle_layout_is_found_inside_contents_frameworks() {
         let root = temp_dir("mac-layout");
         let exe_dir = root.join("OmniDeck.app/Contents/MacOS");
         std::fs::create_dir_all(&exe_dir).unwrap();
-        let soffice = root.join("OmniDeck.app/Contents/Resources/resources/libreoffice/LibreOffice.app/Contents/MacOS/soffice");
+        let soffice = root.join("OmniDeck.app/Contents/Frameworks/LibreOffice.app/Contents/MacOS/soffice");
         touch_exe(&soffice);
         let roots = bundled_runtime_roots(&exe_dir, None, TargetOs::MacOs);
         let found = find_bundled_soffice(&roots, TargetOs::MacOs).expect("bundled soffice not found");

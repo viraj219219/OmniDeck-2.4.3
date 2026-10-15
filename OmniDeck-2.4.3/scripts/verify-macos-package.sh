@@ -19,7 +19,7 @@ MNT="$(mktemp -d)"
 hdiutil attach "$DMG" -nobrowse -readonly -mountpoint "$MNT" >/dev/null || { echo "FAIL: dmg did not mount" >&2; exit 1; }
 trap 'hdiutil detach "$MNT" -quiet >/dev/null 2>&1 || true' EXIT
 APP="$(ls -d "$MNT"/*.app | head -n1)"; [ -n "$APP" ] && ok "dmg mounts and contains $(basename "$APP")" || { fail "no .app in dmg"; exit 1; }
-LO="$APP/Contents/Resources/resources/libreoffice/LibreOffice.app"
+LO="$APP/Contents/Frameworks/LibreOffice.app"
 SOFFICE="$LO/Contents/MacOS/soffice"
 [ -x "$SOFFICE" ] && ok "nested LibreOffice.app is present at the path util.rs searches" || { fail "bundled LibreOffice.app missing at $LO"; }
 
@@ -27,11 +27,52 @@ if [ -x "$SOFFICE" ]; then
   archs="$(lipo -archs "$SOFFICE" 2>/dev/null)"
   echo "$archs" | grep -qw "$want" && ok "bundled soffice contains $want ($archs)" || fail "bundled soffice architectures '$archs' do not include $want"
   [ "$ARCH" = "x86_64" ] && { echo "$archs" | grep -qw arm64 && echo "note: soffice is a fat binary" || true; }
-  codesign --verify --deep --strict "$LO" >/dev/null 2>&1 && ok "nested LibreOffice.app signature is valid" || fail "nested LibreOffice.app signature is INVALID"
+  if codesign --verify --deep --strict --verbose=2 "$LO"; then
+    ok "nested LibreOffice.app signature is valid"
+  else
+    fail "nested LibreOffice.app signature is INVALID"
+  fi
   home="$(mktemp -d)"; ver="$("$SOFFICE" --headless --version 2>&1 | head -n1)"
   echo "$ver" | grep -q "$VERSION" && ok "bundled soffice reports $VERSION" || fail "bundled soffice version '$ver' != $VERSION"
   out="$(mktemp -d)"
-  if timeout 300 "$SOFFICE" --headless --norestore "-env:UserInstallation=file://$home/profile" --convert-to pdf --outdir "$out" "$FIXTURE" >/tmp/omnideck-conv.log 2>&1; then
+  if python3 - "$SOFFICE" "$home/profile" "$out" "$FIXTURE" <<'PYTHON_TIMEOUT'
+import os
+import signal
+import subprocess
+import sys
+
+soffice, profile, outdir, fixture = sys.argv[1:]
+command = [
+    soffice,
+    "--headless",
+    "--norestore",
+    f"-env:UserInstallation=file://{profile}",
+    "--convert-to",
+    "pdf",
+    "--outdir",
+    outdir,
+    fixture,
+]
+with open("/tmp/omnideck-conv.log", "wb") as log:
+    process = subprocess.Popen(
+        command,
+        stdout=log,
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+    try:
+        status = process.wait(timeout=300)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait()
+        print("LibreOffice conversion timed out after 300 seconds", file=sys.stderr)
+        sys.exit(124)
+sys.exit(status)
+PYTHON_TIMEOUT
+  then
     pages="$(grep -a -c '/Type */Page[^s]' "$out/three-slides.pdf" 2>/dev/null || echo 0)"
     [ "$pages" -eq 3 ] && ok "mounted package converted a real .pptx to 3 pages" || fail "produced $pages pages, expected 3"
   else fail "conversion failed or timed out inside the mounted package"; cat /tmp/omnideck-conv.log >&2; fi

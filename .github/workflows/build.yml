@@ -1,0 +1,313 @@
+name: Build, Test & Release
+
+# One workflow that tests OmniDeck and builds every installer on a NATIVE runner:
+#
+#   Windows 10/11 x64        windows-latest      -> NSIS .exe
+#   macOS Intel              macos-15-intel      -> .dmg  (x86_64-apple-darwin)
+#   macOS Apple Silicon      macos-15            -> .dmg  (aarch64-apple-darwin)
+#   Linux x86_64             ubuntu-22.04        -> .deb .rpm .AppImage
+#   Linux arm64              ubuntu-22.04-arm    -> .deb .rpm .AppImage
+#
+# macOS is deliberately NOT a universal build: the bundled LibreOffice is a single-architecture
+# runtime, so each macOS build ships the runtime that matches its own architecture and is
+# validated by executing it on a runner of that architecture.
+#
+# Linux is built on Ubuntu 22.04 (glibc 2.35, WebKitGTK 4.1) on purpose: it runs on 22.04 and
+# newer, and LibreOffice 26.x needs glibc >= 2.27.
+#
+# EVERY build (PRs included) is gated: vendored pdf.js + LibreOffice must be present and match
+# scripts/libreoffice-version.txt (verify-release-inputs), and the BUILT installers are inspected
+# and, where possible, run (verify-*-package). A missing runtime fails the job; nothing is
+# "best effort".
+#
+# Tags like v2.4.0 additionally: require the updater signing secrets, sign + publish every
+# installer and the updater manifest (latest.json) to a DRAFT release, and validate that draft
+# (verify-release-assets) before you publish it. See docs/RELEASING.md.
+
+on:
+  push:
+    branches: [main, release-readiness-fixes]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  test-frontend:
+    defaults:
+      run:
+        working-directory: OmniDeck-2.4.3
+    name: Frontend + script tests
+    runs-on: ubuntu-22.04
+    env:
+      # A test that cannot run (missing soffice, gcc, pwsh...) FAILS instead of silently skipping.
+      OMNIDECK_REQUIRE_NATIVE_TESTS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: OmniDeck-2.4.3/package-lock.json
+      - name: Tools the native tests need
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-impress libreoffice-core curl dpkg gcc
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+
+  test-windows-vendor:
+    name: Windows LibreOffice vendoring tests
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: OmniDeck-2.4.3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: OmniDeck-2.4.3/package-lock.json
+      - run: npm ci
+      - name: Run Windows-native vendoring tests
+        run: node tests/vendor-libreoffice-windows.test.mjs
+
+  build:
+    defaults:
+      run:
+        working-directory: OmniDeck-2.4.3
+    name: Build (${{ matrix.label }})
+    needs: [test-frontend, test-windows-vendor]
+    permissions:
+      contents: write   # tauri-action attaches installers to the draft release on tags
+    strategy:
+      fail-fast: false
+      # Serialize tag builds so updater-manifest uploads cannot race between platforms
+      # so parallel platforms cannot race while merging the updater manifest. PR builds stay parallel.
+      max-parallel: ${{ startsWith(github.ref, 'refs/tags/v') && 1 || 5 }}
+      matrix:
+        include:
+          - label: "Linux x86_64"
+            id: linux-x86_64
+            platform: ubuntu-22.04
+            os: linux
+            arch: x86_64
+            tauri_args: ""
+            rust_targets: ""
+            bundle_dir: src-tauri/target/release/bundle
+          - label: "Linux arm64"
+            id: linux-aarch64
+            platform: ubuntu-22.04-arm
+            os: linux
+            arch: aarch64
+            tauri_args: ""
+            rust_targets: ""
+            bundle_dir: src-tauri/target/release/bundle
+          - label: "Windows 10/11 x64"
+            id: windows-x86_64
+            platform: windows-latest
+            os: windows
+            arch: x86_64
+            # Build the requested NSIS .exe. WiX MSI linking stalls on the very large
+            # bundled LibreOffice tree; the NSIS installer is the supported release artifact.
+            tauri_args: "--bundles nsis"
+            rust_targets: ""
+            bundle_dir: src-tauri/target/release/bundle
+          - label: "macOS Intel"
+            id: macos-x86_64
+            platform: macos-15-intel
+            os: macos
+            arch: x86_64
+            tauri_args: "--config src-tauri/tauri.macos.conf.json --target x86_64-apple-darwin"
+            rust_targets: "x86_64-apple-darwin"
+            bundle_dir: src-tauri/target/x86_64-apple-darwin/release/bundle
+          - label: "macOS Apple Silicon"
+            id: macos-aarch64
+            platform: macos-15
+            os: macos
+            arch: aarch64
+            tauri_args: "--config src-tauri/tauri.macos.conf.json --target aarch64-apple-darwin"
+            rust_targets: "aarch64-apple-darwin"
+            bundle_dir: src-tauri/target/aarch64-apple-darwin/release/bundle
+    runs-on: ${{ matrix.platform }}
+    env:
+      IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: OmniDeck-2.4.3/package-lock.json
+
+      - name: Pinned LibreOffice version (single source of truth)
+        shell: bash
+        run: echo "LIBREOFFICE_VERSION=$(tr -d '[:space:]' < scripts/libreoffice-version.txt)" >> "$GITHUB_ENV"
+
+      - name: Install Linux webview/build dependencies
+        if: matrix.os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            librsvg2-dev build-essential curl wget file libssl-dev \
+            libayatana-appindicator3-dev libfuse2 patchelf rpm dpkg
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_targets }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: OmniDeck-2.4.3/src-tauri
+
+      - run: npm ci
+
+      # ---- runtimes: vendored BEFORE packaging; each step fails hard ----------------------
+      - name: Vendor pdf.js (strict; a release without it re-introduces Poppler)
+        run: node scripts/vendor-pdfjs.mjs --strict
+
+      - name: Vendor LibreOffice (Linux)
+        if: matrix.os == 'linux'
+        run: bash scripts/vendor-libreoffice-linux.sh "${{ matrix.arch }}" src-tauri/resources/libreoffice
+
+      - name: Vendor LibreOffice (Windows x64)
+        if: matrix.os == 'windows'
+        shell: pwsh
+        run: ./scripts/vendor-libreoffice-windows.ps1 -Destination src-tauri/resources/libreoffice -Version $env:LIBREOFFICE_VERSION
+
+      - name: Vendor LibreOffice (macOS ${{ matrix.arch }}, native runner)
+        if: matrix.os == 'macos'
+        run: bash scripts/vendor-libreoffice-macos.sh "${{ matrix.arch }}" src-tauri/resources/libreoffice
+
+      - name: Declare the bundled runtime's real system-library dependencies (Linux)
+        if: matrix.os == 'linux'
+        run: bash scripts/linux-runtime-depends.sh src-tauri/resources/libreoffice src-tauri/tauri.linux.conf.json
+
+      - name: Updater config (release builds)
+        if: env.IS_RELEASE == 'true'
+        shell: bash
+        env:
+          TAURI_UPDATER_PUBKEY: ${{ vars.TAURI_UPDATER_PUBKEY }}
+        run: node scripts/write-updater-config.mjs src-tauri/tauri.updater.conf.json
+
+      - name: Gate - release inputs present and consistent
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_UPDATER_PUBKEY: ${{ vars.TAURI_UPDATER_PUBKEY }}
+        run: |
+          flags="--platform=${{ matrix.os }} --arch=${{ matrix.arch }}"
+          if [ "$IS_RELEASE" = "true" ]; then flags="$flags --require-updater"; fi
+          node scripts/verify-release-inputs.mjs $flags
+
+      # ---- Rust ---------------------------------------------------------------------------
+      - run: cargo check --manifest-path src-tauri/Cargo.toml
+      - run: cargo test --manifest-path src-tauri/Cargo.toml
+
+      # ---- build --------------------------------------------------------------------------
+      - name: Build installers (PR / branch; non-macOS)
+        if: env.IS_RELEASE != 'true' && matrix.os != 'macos'
+        run: npx tauri build ${{ matrix.tauri_args }}
+
+      - name: Build macOS installers (PR / branch; preserve vendored LibreOffice signature)
+        if: env.IS_RELEASE != 'true' && matrix.os == 'macos'
+        run: npx tauri build --no-sign ${{ matrix.tauri_args }}
+
+      - name: Build, sign and attach to draft release (tag)
+        if: env.IS_RELEASE == 'true'
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          projectPath: OmniDeck-2.4.3
+          tagName: ${{ github.ref_name }}
+          releaseName: "OmniDeck ${{ github.ref_name }}"
+          releaseDraft: true
+          uploadUpdaterJson: true
+          uploadUpdaterSignatures: true
+          args: --config src-tauri/tauri.updater.conf.json ${{ matrix.tauri_args }} ${{ matrix.os == 'macos' && secrets.APPLE_CERTIFICATE == '' && '--no-sign' || '' }}
+
+      # ---- verify the BUILT artifacts (not the dev tree) ------------------------------------
+      - name: Verify packages (Linux)
+        if: matrix.os == 'linux'
+        run: bash scripts/verify-linux-package.sh "${{ matrix.bundle_dir }}"
+
+      - name: Verify packages (Windows)
+        if: matrix.os == 'windows'
+        shell: pwsh
+        run: ./scripts/verify-windows-package.ps1 -BundleDir "${{ matrix.bundle_dir }}"
+
+      - name: Verify packages (macOS)
+        if: matrix.os == 'macos'
+        run: |
+          flag=""
+          if [ -n "${{ secrets.APPLE_CERTIFICATE }}" ]; then flag="--require-signed"; fi
+          bash scripts/verify-macos-package.sh "${{ matrix.bundle_dir }}" "${{ matrix.arch }}" $flag
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: omnideck-${{ matrix.id }}
+          path: |
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*-setup.exe
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.dmg
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.deb
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.rpm
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.AppImage
+            OmniDeck-2.4.3/${{ matrix.bundle_dir }}/**/*.sig
+          if-no-files-found: error
+
+  release-integrity:
+    defaults:
+      run:
+        working-directory: OmniDeck-2.4.3
+    name: Validate draft release (updater manifest + checksums)
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Collect release assets and latest.json
+        run: |
+          mkdir rel && cd rel
+          gh release download "${{ github.ref_name }}" --repo "${{ github.repository }}" --pattern latest.json
+          gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" --json assets --jq '.assets[].name' > ../assets.txt
+          gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" --json assets --jq '.assets[] | [.id, .name] | @tsv' > ../assets-map.tsv
+          cat ../assets.txt
+      - name: Validate updater manifest against the attached assets
+        run: node scripts/verify-release-assets.mjs --latest rel/latest.json --assets assets.txt --asset-map assets-map.tsv --version "$(node -p "require('./package.json').version")"
+      - name: SHA256SUMS
+        run: |
+          cd rel
+          for f in $(grep -Ev '^(latest\.json|SHA256SUMS)$' ../assets.txt); do gh release download "${{ github.ref_name }}" --repo "${{ github.repository }}" --pattern "$f"; done
+          sha256sum $(ls | grep -v -e latest.json -e SHA256SUMS) > SHA256SUMS
+          cat SHA256SUMS
+          gh release upload "${{ github.ref_name }}" SHA256SUMS --repo "${{ github.repository }}" --clobber
+
+# What this CI does NOT prove (needs real machines — docs/RELEASING.md "Manual acceptance"):
+#   - installing/launching on Windows 10 specifically (runners are newer Windows images)
+#   - Linux distros other than the Ubuntu runner (Mint, Fedora, Debian, ...)
+#   - an actual end-to-end update from version N to N+1 (needs two signed releases)
+#   - physical projector / multi-monitor hot-plug behaviour

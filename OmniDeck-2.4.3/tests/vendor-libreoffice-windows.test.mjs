@@ -25,6 +25,7 @@ const staticChecks = [
   ["uses official TDF download host", /https:\/\/download\.documentfoundation\.org\/libreoffice\/stable\//],
   ["pins LibreOffice 26.8.0", /"26\.8\.0"\s*=\s*"[0-9A-F]{64}"/],
   ["keeps the pinned 26.8.0 SHA-256 unchanged", /4AA6C6E1895F4055104EFFCB556BD3362D20C6AD707C149543304F395EF9DB95/i],
+  ["writes normalized lowercase archive SHA-256 provenance", /archive_sha256=\$\(\$expectedHash\.ToLowerInvariant\(\)\)/],
   ["loads System.Net.Http explicitly for Windows PowerShell 5.1", /Add-Type -AssemblyName System\.Net\.Http/],
   ["streams the body (ResponseHeadersRead)", /ResponseHeadersRead/],
   ["follows redirects", /AllowAutoRedirect\s*=\s*\$true/],
@@ -121,9 +122,14 @@ if (!pwsh) {
     await srv.close();
   }
 
-  // native exit codes are real, and a stale $LASTEXITCODE changes nothing
-  if (which("true") && which("false") && which("sleep")) {
-    const r = await ps(`$global:LASTEXITCODE = 5; $ok = Invoke-NativeCapture -FilePath '${which("true")}'; $global:LASTEXITCODE = 0; $bad = Invoke-NativeCapture -FilePath '${which("false")}'; $slow = Invoke-NativeCapture -FilePath '${which("sleep")}' -Arguments @('30') -TimeoutSeconds 1; "$($ok.ExitCode)|$($bad.ExitCode)|$($slow.TimedOut)"`);
+  // Invoke-NativeCapture deliberately launches powershell.exe and uses Windows
+  // process semantics. Keep this behavioural assertion on a Windows runner;
+  // Linux still exercises parsing, static guards, and the platform-neutral
+  // resumable-download helpers above.
+  if (process.platform === "win32" && which("cmd.exe") && which("ping.exe")) {
+    const cmd = q(which("cmd.exe"));
+    const ping = q(which("ping.exe"));
+    const r = await ps(`$global:LASTEXITCODE = 5; $ok = Invoke-NativeCapture -FilePath '${cmd}' -Arguments @('/c','exit','0'); $global:LASTEXITCODE = 0; $bad = Invoke-NativeCapture -FilePath '${cmd}' -Arguments @('/c','exit','1'); $slow = Invoke-NativeCapture -FilePath '${ping}' -Arguments @('-n','30','127.0.0.1') -TimeoutSeconds 1; "$($ok.ExitCode)|$($bad.ExitCode)|$($slow.TimedOut)"`);
     check("Invoke-NativeCapture: real exit codes (stale $LASTEXITCODE ignored) and timeout kill", r.stdout.trim() === "0|1|True", r.all);
   }
 
@@ -138,11 +144,11 @@ if (!pwsh) {
   }
 
   // version + smoke conversion with a REAL LibreOffice, if this machine has one
-  const realSoffice = process.env.OMNIDECK_TEST_SOFFICE || which("soffice");
+  const realSoffice = process.platform === "win32" ? (process.env.OMNIDECK_TEST_SOFFICE || which("soffice")) : null;
   const fixture = join(root, "src-tauri/test-fixtures/three-slides.pptx");
-  if (!realSoffice) {
-    skip("PowerShell version/smoke helpers against a real LibreOffice", "no soffice on this machine");
-  } else {
+  if (process.platform === "win32" && !realSoffice) {
+    skip("PowerShell version/smoke helpers against a real LibreOffice", "no soffice on this Windows machine");
+  } else if (process.platform === "win32" && realSoffice) {
     const v = (await run(realSoffice, ["--version"])).stdout.trim();
     const mm = /LibreOffice (\d+)\.(\d+)/.exec(v);
     const ok = await ps(`Assert-LibreOfficeVersion -Soffice '${q(realSoffice)}' -Expected '${mm[1]}.${mm[2]}.0'`);

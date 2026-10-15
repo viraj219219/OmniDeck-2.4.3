@@ -40,9 +40,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": {
-      "resources/libreoffice/**/*": "resources/libreoffice/"
-    },
+    "resources": [
+      "resources/libreoffice/"
+    ],
     "category": "Education",
     "shortDescription": "Sunday School lesson builder and classroom presenter",
     "macOS": {

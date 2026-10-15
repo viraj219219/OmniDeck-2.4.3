@@ -15,19 +15,29 @@ vo_die() { echo "ERROR: $*" >&2; exit 1; }
 # cross-checked against the signed release announcement / a second mirror):
 #   OMNIDECK_PIN_DISCOVERY=1 scripts/vendor-libreoffice-linux.sh x86_64
 # prints "Computed SHA-256" and exits 3 WITHOUT producing a bundle. Copy the
-# value into the matching line below and commit. Discovery is refused on GitHub
-# Actions so a release can never run it.
+# value into the matching line below and commit. GitHub Actions discovery is
+# allowed only in the dedicated checksum workflow, on manual dispatch or PR
+# validation; normal build, push, and release jobs remain blocked.
+vo_pin_discovery_allowed() {
+  [ "${OMNIDECK_PIN_DISCOVERY:-0}" = "1" ] || return 1
+  if [ "${GITHUB_ACTIONS:-}" != "true" ]; then return 0; fi
+  [ "${GITHUB_WORKFLOW:-}" = "Pin LibreOffice checksums (manual)" ] || return 1
+  case "${GITHUB_EVENT_NAME:-}" in
+    workflow_dispatch|pull_request) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 vo_pinned_sha256() {
   # Test-only override, honoured ONLY together with the test-only base-URL
   # override (a local fixture server) and never on GitHub Actions.
-  if [ -n "${OMNIDECK_TEST_PINNED_SHA256:-}" ] && [ -n "${OMNIDECK_LO_BASE_URL:-}" ] && [ "${GITHUB_ACTIONS:-}" != "true" ]; then
+  if [ "${OMNIDECK_TEST_PINNED_SHA256+x}" = "x" ] && [ -n "${OMNIDECK_LO_BASE_URL:-}" ] && [ "${GITHUB_ACTIONS:-}" != "true" ]; then
     echo "$OMNIDECK_TEST_PINNED_SHA256"; return 0
   fi
   case "$1" in
-    # "26.8.0:linux-x86_64")  echo "<64 hex chars>" ;;
-    # "26.8.0:linux-aarch64") echo "<64 hex chars>" ;;
-    # "26.8.0:macos-x86_64")  echo "<64 hex chars>" ;;
-    # "26.8.0:macos-aarch64") echo "<64 hex chars>" ;;
+    "26.8.0:linux-x86_64")  echo "d0a6031a3837e48f9854e6d2da6489b9fadbd814afa4741fa32a197741663a22" ;;
+    "26.8.0:linux-aarch64") echo "f989b73c31e7e16b3f99475bc5befaffdf42af75f83fe882293e1a0258cc9173" ;;
+    "26.8.0:macos-x86_64")  echo "2dcbce4894e01bc1ecd594658e2cbda70ff7bfcd0b310f35d38887797172d09e" ;;
+    "26.8.0:macos-aarch64") echo "8858d8058da4f862f47559486814e65efc27294da67c5e4bb56b006b1ee59f89" ;;
     *) echo "" ;;
   esac
 }
@@ -104,7 +114,7 @@ vo_download() {
     actual="$(vo_sha256 "$partial")"
     echo "Computed SHA-256: $actual"
     if [ -z "$pinned" ]; then
-      if [ "${OMNIDECK_PIN_DISCOVERY:-0}" = "1" ] && [ "${GITHUB_ACTIONS:-}" != "true" ]; then
+      if vo_pin_discovery_allowed; then
         echo "PIN DISCOVERY: add this to vo_pinned_sha256 in scripts/lib/vendor-common.sh:" >&2
         echo "    \"<version>:<platform>-<arch>\")  echo \"$actual\" ;;" >&2
         exit 3
