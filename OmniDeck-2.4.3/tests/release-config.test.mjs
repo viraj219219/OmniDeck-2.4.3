@@ -164,8 +164,22 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   const files = { "linux-x86_64": "a.AppImage", "linux-aarch64": "b.AppImage", "windows-x86_64": "c-setup.exe", "darwin-x86_64": "d.app.tar.gz", "darwin-aarch64": "e.app.tar.gz" };
   const good = { version: pkgV, platforms: Object.fromEntries(Object.entries(files).map(([k, f]) => plat(k, f))) };
   const assets = Object.values(files).flatMap((f) => [f, `${f}.sig`]).join("\n");
-  const vr = async (latest, a = assets) => { writeFileSync(join(d, "l.json"), JSON.stringify(latest)); writeFileSync(join(d, "a.txt"), a); return run("node", [join(root, "scripts/verify-release-assets.mjs"), "--latest", join(d, "l.json"), "--assets", join(d, "a.txt"), "--version", pkgV]); };
+  const vr = async (latest, a = assets, map = undefined) => {
+    writeFileSync(join(d, "l.json"), JSON.stringify(latest));
+    writeFileSync(join(d, "a.txt"), a);
+    const args = [join(root, "scripts/verify-release-assets.mjs"), "--latest", join(d, "l.json"), "--assets", join(d, "a.txt"), "--version", pkgV];
+    if (map !== undefined) { writeFileSync(join(d, "assets-map.tsv"), map); args.push("--asset-map", join(d, "assets-map.tsv")); }
+    return run("node", args);
+  };
   r = await vr(good); check("a complete, signed manifest passes", r.status === 0, r.all);
+  const apiGood = structuredClone(good);
+  const apiMap = Object.entries(files).map(([key, file], i) => {
+    const id = String(7001 + i);
+    apiGood.platforms[key].url = `https://api.github.com/repos/acme/omnideck/releases/assets/${id}`;
+    return `${id}\\t${file}`;
+  }).join("\\n");
+  r = await vr(apiGood, assets, apiMap); check("Tauri GitHub API asset IDs resolve to attached filenames", r.status === 0, r.all);
+  r = await vr(apiGood, assets, ""); check("API asset URL without an ID mapping fails closed", r.status === 1 && /missing from --asset-map/.test(r.all), r.all);
   const drop = structuredClone(good); delete drop.platforms["darwin-aarch64"]; r = await vr(drop); check("manifest missing a platform fails", r.status === 1 && /darwin-aarch64/.test(r.all));
   const nosig = structuredClone(good); nosig.platforms["linux-x86_64"].signature = ""; r = await vr(nosig); check("manifest entry without a signature fails", r.status === 1 && /signature/.test(r.all));
   r = await vr(good, assets.split("\n").filter((l) => l !== "c-setup.exe").join("\n")); check("manifest pointing at an asset that isn't attached fails", r.status === 1 && /not attached/.test(r.all));
