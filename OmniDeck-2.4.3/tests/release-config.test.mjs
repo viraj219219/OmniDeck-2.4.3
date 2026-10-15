@@ -60,6 +60,7 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   check("input gate runs before building and Linux deps are generated before it", i("verify-release-inputs.mjs") > i("linux-runtime-depends.sh") && i("verify-release-inputs.mjs") < i("Build installers (PR"));
   check("built-package verification exists for all three OS families", ["verify-linux-package.sh", "verify-windows-package.ps1", "verify-macos-package.sh"].every((s) => i(s) > i("Build, sign and attach")));
   check("cargo test and cargo check run", /cargo test --manifest-path/.test(wf) && /cargo check --manifest-path/.test(wf));
+  check("Rust cache points to the nested Tauri workspace", wf.includes("workspaces: OmniDeck-2.4.3/src-tauri"));
   check("unsigned macOS CI build preserves vendor code signatures with --no-sign", wf.includes("run: npx tauri build --no-sign"));
   check("unsigned macOS tag build does not re-sign nested vendor apps", wf.includes("secrets.APPLE_CERTIFICATE == '' && '--no-sign'"));
   const macVerifier = read("scripts/verify-macos-package.sh");
