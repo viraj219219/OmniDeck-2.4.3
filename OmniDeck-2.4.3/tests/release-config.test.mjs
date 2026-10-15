@@ -70,7 +70,7 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   const t = json("src-tauri/tauri.conf.json"), s = JSON.stringify(t);
   check("macOS minimum is 11.0 (LibreOffice 26.x requirement; was 10.15)", t.bundle.macOS.minimumSystemVersion === "11.0");
   check("deb/rpm no longer 'recommend' a system LibreOffice/Poppler", !t.bundle.linux && !/libreoffice-impress|poppler-utils/.test(s));
-  check("LibreOffice resources are bundled", t.bundle.resources["resources/libreoffice/**/*"] === "resources/libreoffice/");
+  check("LibreOffice resources are bundled with directory structure preserved", Array.isArray(t.bundle.resources) && t.bundle.resources.includes("resources/libreoffice/"));
   check("base config has no updater key and no updater artifacts (release-only override)", !t.plugins?.updater && !t.bundle.createUpdaterArtifacts);
   const caps = readdirSync(join(root, "src-tauri/capabilities")).map((f) => json(`src-tauri/capabilities/${f}`));
   const up = caps.find((c) => c.identifier === "updater");
