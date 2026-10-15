@@ -24,8 +24,7 @@ No React/Vue, no bundler, no build step for the UI itself.
 - **Performance & stability** — ships as a small native binary around the
   OS's own webview (WebView2 on Windows, WebKitGTK on Linux), not a
   bundled Chromium.
-- **Windows + Ubuntu + Linux Mint** — Tauri v2 targets all three from one
-  codebase: NSIS `.exe` on Windows, `.deb`/`.AppImage` on Linux.
+- **Windows, macOS, and Linux** — native builds are produced from one codebase: NSIS `.exe` on Windows, `.dmg` on macOS, and `.deb`/`.rpm`/`.AppImage` on Linux.
 - **Fullscreen presentation support** — native OS fullscreen via
   `set_presentation_fullscreen` in `src-tauri/src/main.rs`.
 - **Reliable file handling** — the `dialog` and `fs` plugins give a native
