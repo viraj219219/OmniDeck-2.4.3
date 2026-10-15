@@ -52,6 +52,7 @@ check("workflow reads the version from the file (no literal LibreOffice version 
 {
   const ids = [...wf.matchAll(/^\s+id: ([a-z0-9_-]+)$/gm)].map((m) => m[1]);
   check("five native build targets", ["linux-x86_64", "linux-aarch64", "windows-x86_64", "macos-x86_64", "macos-aarch64"].every((i) => ids.includes(i)));
+  check("tag builds serialize tauri-action updater JSON uploads while PR builds stay parallel", wf.includes("max-parallel: ${{ startsWith(github.ref, 'refs/tags/v') && 1 || 5 }}"));
   check("macOS is per-architecture on verified runners (no universal build)", /macos-15-intel/.test(wf) && /runs-on|platform: macos-15\b/.test(wf) && !/universal-apple-darwin/.test(strip(wf)));
   const i = (s) => wf.indexOf(s);
   check("pdf.js is vendored in strict mode before the build", /vendor-pdfjs\.mjs --strict/.test(wf) && i("vendor-pdfjs.mjs --strict") < i("Build installers"));
