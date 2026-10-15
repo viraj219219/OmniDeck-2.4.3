@@ -69,6 +69,7 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   check("skips are failures in the frontend job", /OMNIDECK_REQUIRE_NATIVE_TESTS: "1"/.test(wf));
   check("tag builds require updater signing inputs", /--require-updater/.test(wf) && /TAURI_SIGNING_PRIVATE_KEY: \$\{\{ secrets\.TAURI_SIGNING_PRIVATE_KEY \}\}/.test(wf) && /write-updater-config\.mjs/.test(wf));
   check("release is a DRAFT and its updater manifest is validated before publishing", /releaseDraft: true/.test(wf) && /verify-release-assets\.mjs/.test(wf) && /release-integrity/.test(wf));
+  check("release integrity maps Tauri API asset URLs to attached filenames", wf.includes("assets-map.tsv") && /--asset-map assets-map\.tsv/.test(wf));
   check("no secret or private key is echoed to logs", !/echo.*\$\{\{ *secrets\./.test(wf));
 }
 
