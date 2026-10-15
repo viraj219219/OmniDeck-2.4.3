@@ -29,6 +29,7 @@ permissions:
 
 jobs:
   discover:
+    if: github.event_name == 'workflow_dispatch'
     defaults:
       run:
         working-directory: OmniDeck-2.4.3
@@ -75,6 +76,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   windows-recheck:
+    if: github.event_name == 'workflow_dispatch'
     defaults:
       run:
         working-directory: OmniDeck-2.4.3
@@ -97,3 +99,26 @@ jobs:
           $lines | Add-Content $env:GITHUB_STEP_SUMMARY
           $lines | Write-Host
           if ($actual -ne $pinned) { exit 1 }
+
+  verify-pins:
+    if: github.event_name == 'pull_request'
+    name: Validate committed LibreOffice pins
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: OmniDeck-2.4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Linux and macOS pins are populated
+        shell: bash
+        run: |
+          source scripts/lib/vendor-common.sh
+          for key in \
+            "26.8.0:linux-x86_64" \
+            "26.8.0:linux-aarch64" \
+            "26.8.0:macos-x86_64" \
+            "26.8.0:macos-aarch64"; do
+            hash="$(vo_pinned_sha256 "$key")"
+            [[ "$hash" =~ ^[0-9a-f]{64}$ ]] || { echo "Missing or invalid pin for $key"; exit 1; }
+            echo "$key $hash"
+          done

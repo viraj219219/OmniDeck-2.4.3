@@ -25,6 +25,7 @@ const staticChecks = [
   ["uses official TDF download host", /https:\/\/download\.documentfoundation\.org\/libreoffice\/stable\//],
   ["pins LibreOffice 26.8.0", /"26\.8\.0"\s*=\s*"[0-9A-F]{64}"/],
   ["keeps the pinned 26.8.0 SHA-256 unchanged", /4AA6C6E1895F4055104EFFCB556BD3362D20C6AD707C149543304F395EF9DB95/i],
+  ["writes normalized lowercase archive SHA-256 provenance", /archive_sha256=\$\(\$expectedHash\.ToLowerInvariant\(\)\)/],
   ["loads System.Net.Http explicitly for Windows PowerShell 5.1", /Add-Type -AssemblyName System\.Net\.Http/],
   ["streams the body (ResponseHeadersRead)", /ResponseHeadersRead/],
   ["follows redirects", /AllowAutoRedirect\s*=\s*\$true/],

@@ -84,6 +84,11 @@ for deb in "$DEB_DIR"/*.deb; do
 done
 [ "$extracted" -gt 0 ] || vo_die "no .deb files were extracted"
 
+# OmniDeck uses headless Impress/PDF export. These optional Java/GTK4/Qt6 media
+# plugins are not used by that path and pull in libraries absent on supported
+# Linux baselines. Remove them instead of requiring unrelated desktop/media stacks.
+find "$STAGE/opt" \( -name 'libofficebean.so*' -o -name 'libavmediagtk.so*' -o -name 'libavmediaqt6.so*' \) -print -delete
+
 # The version-numbered path can't be hardcoded; whole tree stays together so the
 # relative symlinks dpkg-deb preserves keep working (never flatten program/).
 SOFFICE_BIN="$(find "$STAGE/opt" -type f -name soffice.bin 2>/dev/null | head -n1)"
