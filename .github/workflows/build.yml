@@ -209,9 +209,13 @@ jobs:
       - run: cargo test --manifest-path src-tauri/Cargo.toml
 
       # ---- build --------------------------------------------------------------------------
-      - name: Build installers (PR / branch)
-        if: env.IS_RELEASE != 'true'
+      - name: Build installers (PR / branch; non-macOS)
+        if: env.IS_RELEASE != 'true' && matrix.os != 'macos'
         run: npx tauri build ${{ matrix.tauri_args }}
+
+      - name: Build macOS installers (PR / branch; preserve vendored LibreOffice signature)
+        if: env.IS_RELEASE != 'true' && matrix.os == 'macos'
+        run: npx tauri build --no-sign ${{ matrix.tauri_args }}
 
       - name: Build, sign and attach to draft release (tag)
         if: env.IS_RELEASE == 'true'
@@ -232,7 +236,7 @@ jobs:
           releaseName: "OmniDeck ${{ github.ref_name }}"
           releaseDraft: true
           includeUpdaterJson: true
-          args: --config src-tauri/tauri.updater.conf.json ${{ matrix.tauri_args }}
+          args: --config src-tauri/tauri.updater.conf.json ${{ matrix.tauri_args }} ${{ matrix.os == 'macos' && secrets.APPLE_CERTIFICATE == '' && '--no-sign' || '' }}
 
       # ---- verify the BUILT artifacts (not the dev tree) ------------------------------------
       - name: Verify packages (Linux)

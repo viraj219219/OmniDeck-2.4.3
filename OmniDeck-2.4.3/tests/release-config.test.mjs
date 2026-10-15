@@ -59,6 +59,11 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   check("input gate runs before building and Linux deps are generated before it", i("verify-release-inputs.mjs") > i("linux-runtime-depends.sh") && i("verify-release-inputs.mjs") < i("Build installers (PR"));
   check("built-package verification exists for all three OS families", ["verify-linux-package.sh", "verify-windows-package.ps1", "verify-macos-package.sh"].every((s) => i(s) > i("Build, sign and attach")));
   check("cargo test and cargo check run", /cargo test --manifest-path/.test(wf) && /cargo check --manifest-path/.test(wf));
+  check("unsigned macOS CI build preserves vendor code signatures with --no-sign", /matrix\.os == 'macos'[\s\S]*?npx tauri build --no-sign/.test(wf));
+  check("unsigned macOS tag build does not re-sign nested vendor apps", /secrets\.APPLE_CERTIFICATE == '' && '--no-sign'/.test(wf));
+  const macVerifier = read("scripts/verify-macos-package.sh");
+  check("macOS package conversion timeout is portable (no GNU timeout dependency)", /python3 -/.test(macVerifier) && !/\btimeout 300\b/.test(macVerifier));
+  check("macOS bundle signature failures print codesign diagnostics", /codesign --verify --deep --strict --verbose=2 "\$LO"/.test(macVerifier));
   check("skips are failures in the frontend job", /OMNIDECK_REQUIRE_NATIVE_TESTS: "1"/.test(wf));
   check("tag builds require updater signing inputs", /--require-updater/.test(wf) && /TAURI_SIGNING_PRIVATE_KEY: \$\{\{ secrets\.TAURI_SIGNING_PRIVATE_KEY \}\}/.test(wf) && /write-updater-config\.mjs/.test(wf));
   check("release is a DRAFT and its updater manifest is validated before publishing", /releaseDraft: true/.test(wf) && /verify-release-assets\.mjs/.test(wf) && /release-integrity/.test(wf));
