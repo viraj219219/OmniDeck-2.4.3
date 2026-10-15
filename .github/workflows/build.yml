@@ -208,6 +208,7 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
+          projectPath: OmniDeck-2.4.3
           tagName: ${{ github.ref_name }}
           releaseName: "OmniDeck ${{ github.ref_name }}"
           releaseDraft: true
