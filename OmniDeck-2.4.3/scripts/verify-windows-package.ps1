@@ -32,11 +32,16 @@ if (-not $nsis) {
         } else {
             Ok "NSIS installer completed a silent installation"
             $soffice = Get-ChildItem -Path $target -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue |
-                Where-Object { $_.FullName -match "resources\\libreoffice\\program\\soffice\.exe$" } |
+                Where-Object { $_.FullName -match "resources\\(resources\\)?libreoffice\\program\\soffice\.exe$" } |
                 Select-Object -First 1
 
             if (-not $soffice) {
-                Fail "installed NSIS package does not contain resources\libreoffice\program\soffice.exe"
+                Fail "installed NSIS package does not contain bundled LibreOffice program\soffice.exe under: $target"
+                $candidates = @(Get-ChildItem -Path $target -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+                if ($candidates.Count -gt 0) {
+                    Write-Host "Found soffice.exe candidates at unexpected paths:"
+                    $candidates | ForEach-Object { Write-Host "  $_" }
+                } else { Write-Host "No soffice.exe exists under the NSIS install root." }
             } else {
                 Ok "installed package contains $($soffice.FullName.Substring($target.Length))"
                 $verOut = (Get-Item $soffice.FullName).VersionInfo.ProductVersion
