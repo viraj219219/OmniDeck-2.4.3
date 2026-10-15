@@ -34,10 +34,10 @@ vo_pinned_sha256() {
     echo "$OMNIDECK_TEST_PINNED_SHA256"; return 0
   fi
   case "$1" in
-    # "26.8.0:linux-x86_64")  echo "<64 hex chars>" ;;
-    # "26.8.0:linux-aarch64") echo "<64 hex chars>" ;;
-    # "26.8.0:macos-x86_64")  echo "<64 hex chars>" ;;
-    # "26.8.0:macos-aarch64") echo "<64 hex chars>" ;;
+    "26.8.0:linux-x86_64")  echo "d0a6031a3837e48f9854e6d2da6489b9fadbd814afa4741fa32a197741663a22" ;;
+    "26.8.0:linux-aarch64") echo "f989b73c31e7e16b3f99475bc5befaffdf42af75f83fe882293e1a0258cc9173" ;;
+    "26.8.0:macos-x86_64")  echo "2dcbce4894e01bc1ecd594658e2cbda70ff7bfcd0b310f35d38887797172d09e" ;;
+    "26.8.0:macos-aarch64") echo "8858d8058da4f862f47559486814e65efc27294da67c5e4bb56b006b1ee59f89" ;;
     *) echo "" ;;
   esac
 }
