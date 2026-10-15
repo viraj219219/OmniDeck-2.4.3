@@ -29,7 +29,7 @@ const sh = (f) => read(f).match(/LIBREOFFICE_VERSION:-([0-9.]+)/)?.[1];
 check("linux/macOS scripts default to the pinned version", sh("scripts/vendor-libreoffice-linux.sh") === loV && sh("scripts/vendor-libreoffice-macos.sh") === loV);
 check("npm wrapper defaults to the pinned version", [...read("scripts/vendor-libreoffice.mjs").matchAll(/\|\| "([0-9.]+)"/g)].every((m) => m[1] === loV));
 check("Windows script default + pin entry use the pinned version", new RegExp(`\\[string\\]\\$Version = "${loV.replace(/\./g, "\\.")}"`).test(read("scripts/vendor-libreoffice-windows.ps1")) && read("scripts/vendor-libreoffice-windows.ps1").includes(`"${loV}" = "`));
-const wf = read(".github/workflows/build.yml");
+const wf = read("../.github/workflows/build.yml");
 check("workflow reads the version from the file (no literal LibreOffice version in the workflow)", /libreoffice-version\.txt/.test(wf) && !/24\.8\.4/.test(wf) && !/LIBREOFFICE_VERSION:\s*"/.test(wf));
 
 // ---------- 3. lockfile integrity (offline stand-in for `npm ci`) ----------
@@ -83,7 +83,7 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   check("default capability does NOT grant updater to the audience window", !JSON.stringify(caps.find((c) => c.identifier === "default")).includes("updater"));
   const cargo = read("src-tauri/Cargo.toml");
   check("updater crate is a dependency", /tauri-plugin-updater = "2"/.test(cargo));
-  const files = ["src-tauri/tauri.conf.json", ".github/workflows/build.yml", "scripts/write-updater-config.mjs", "src-tauri/src/main.rs"];
+  const files = ["src-tauri/tauri.conf.json", "../.github/workflows/build.yml", "scripts/write-updater-config.mjs", "src-tauri/src/main.rs"];
   check("no private signing key material is committed", files.every((f) => !/-----BEGIN [A-Z ]*PRIVATE KEY-----|untrusted comment: minisign encrypted secret key|RWRTY0I/.test(read(f))));
 }
 
