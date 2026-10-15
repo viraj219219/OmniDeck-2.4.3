@@ -238,7 +238,8 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "OmniDeck ${{ github.ref_name }}"
           releaseDraft: true
-          includeUpdaterJson: true
+          uploadUpdaterJson: true
+          uploadUpdaterSignatures: true
           args: --config src-tauri/tauri.updater.conf.json ${{ matrix.tauri_args }} ${{ matrix.os == 'macos' && secrets.APPLE_CERTIFICATE == '' && '--no-sign' || '' }}
 
       # ---- verify the BUILT artifacts (not the dev tree) ------------------------------------
