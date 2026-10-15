@@ -79,7 +79,7 @@ check("workflow reads the version from the file (no literal LibreOffice version 
   check("LibreOffice resources are bundled with directory structure preserved", Array.isArray(t.bundle.resources) && t.bundle.resources.includes("resources/libreoffice/"));
   const mac = json("src-tauri/tauri.macos.conf.json");
   check("macOS avoids resource glob-copying the signed LibreOffice app", Array.isArray(mac.bundle.resources) && mac.bundle.resources.length === 0 && mac.bundle.macOS.files["Frameworks/LibreOffice.app"] === "resources/libreoffice/LibreOffice.app");
-  check("both macOS architectures use the signature-preserving config", /tauri_args: "--config src-tauri\\/tauri\\.macos\\.conf\\.json --target (x86_64|aarch64)-apple-darwin"/g.test(wf));
+  check("both macOS architectures use the signature-preserving config", wf.includes('tauri_args: "--config src-tauri/tauri.macos.conf.json --target x86_64-apple-darwin"') && wf.includes('tauri_args: "--config src-tauri/tauri.macos.conf.json --target aarch64-apple-darwin"'));
 
   check("base config has no updater key and no updater artifacts (release-only override)", !t.plugins?.updater && !t.bundle.createUpdaterArtifacts);
   const caps = readdirSync(join(root, "src-tauri/capabilities")).map((f) => json(`src-tauri/capabilities/${f}`));
