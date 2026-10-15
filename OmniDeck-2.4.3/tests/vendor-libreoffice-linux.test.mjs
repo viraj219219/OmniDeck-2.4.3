@@ -24,7 +24,7 @@ check("maps aarch64 archive naming", /aarch64\) FILE_ARCH="aarch64"/.test(src));
 check("extracts with dpkg-deb -x (never installs)", /dpkg-deb -x/.test(src) && !/dpkg -i|apt(-get)? install/.test(src.replace(/#.*$/gm, "")));
 check("no unpinned sidecar-checksum fallback exists", !/\.sha256/.test(common.replace(/#.*$/gm, "")) && !/sidecar/.test(src));
 check("OMNIDECK_LO_BASE_URL override is refused on GitHub Actions", /must not be set in GitHub Actions/.test(common));
-check("pin discovery is restricted to the dedicated checksum workflow in Actions", /GITHUB_WORKFLOW:-\} = "Pin LibreOffice checksums \(manual\)"/.test(common) && /workflow_dispatch\|pull_request/.test(common));
+check("pin discovery is restricted to the dedicated checksum workflow in Actions", /GITHUB_WORKFLOW:-\}" = "Pin LibreOffice checksums \(manual\)"/.test(common) && /workflow_dispatch\|pull_request/.test(common));
 
 const sys = which("soffice");
 if (process.platform !== "linux" || !which("dpkg-deb") || !which("curl") || !sys) {
