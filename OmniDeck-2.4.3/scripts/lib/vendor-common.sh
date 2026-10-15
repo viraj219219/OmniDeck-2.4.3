@@ -30,7 +30,7 @@ vo_pin_discovery_allowed() {
 vo_pinned_sha256() {
   # Test-only override, honoured ONLY together with the test-only base-URL
   # override (a local fixture server) and never on GitHub Actions.
-  if [ -n "${OMNIDECK_TEST_PINNED_SHA256:-}" ] && [ -n "${OMNIDECK_LO_BASE_URL:-}" ] && [ "${GITHUB_ACTIONS:-}" != "true" ]; then
+  if [ "${OMNIDECK_TEST_PINNED_SHA256+x}" = "x" ] && [ -n "${OMNIDECK_LO_BASE_URL:-}" ] && [ "${GITHUB_ACTIONS:-}" != "true" ]; then
     echo "$OMNIDECK_TEST_PINNED_SHA256"; return 0
   fi
   case "$1" in
