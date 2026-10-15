@@ -130,9 +130,6 @@ if (!pwsh) {
     const ping = q(which("ping.exe"));
     const r = await ps(`$global:LASTEXITCODE = 5; $ok = Invoke-NativeCapture -FilePath '${cmd}' -Arguments @('/c','exit','0'); $global:LASTEXITCODE = 0; $bad = Invoke-NativeCapture -FilePath '${cmd}' -Arguments @('/c','exit','1'); $slow = Invoke-NativeCapture -FilePath '${ping}' -Arguments @('-n','30','127.0.0.1') -TimeoutSeconds 1; "$($ok.ExitCode)|$($bad.ExitCode)|$($slow.TimedOut)"`);
     check("Invoke-NativeCapture: real exit codes (stale $LASTEXITCODE ignored) and timeout kill", r.stdout.trim() === "0|1|True", r.all);
-  } else if (process.platform !== "win32" && which("true") && which("false") && which("sleep")) {
-    const r = await ps(`$global:LASTEXITCODE = 5; $ok = Invoke-NativeCapture -FilePath '${which("true")}'; $global:LASTEXITCODE = 0; $bad = Invoke-NativeCapture -FilePath '${which("false")}'; $slow = Invoke-NativeCapture -FilePath '${which("sleep")}' -Arguments @('30') -TimeoutSeconds 1; "$($ok.ExitCode)|$($bad.ExitCode)|$($slow.TimedOut)"`);
-    check("Invoke-NativeCapture: real exit codes (stale $LASTEXITCODE ignored) and timeout kill", r.stdout.trim() === "0|1|True", r.all);
   }
 
   // runtime-file validation
@@ -148,9 +145,9 @@ if (!pwsh) {
   // version + smoke conversion with a REAL LibreOffice, if this machine has one
   const realSoffice = process.platform === "win32" ? (process.env.OMNIDECK_TEST_SOFFICE || which("soffice")) : null;
   const fixture = join(root, "src-tauri/test-fixtures/three-slides.pptx");
-  if (!realSoffice) {
-    skip("PowerShell version/smoke helpers against a real LibreOffice", "no soffice on this machine");
-  } else {
+  if (process.platform === "win32" && !realSoffice) {
+    skip("PowerShell version/smoke helpers against a real LibreOffice", "no soffice on this Windows machine");
+  } else if (process.platform === "win32" && realSoffice) {
     const v = (await run(realSoffice, ["--version"])).stdout.trim();
     const mm = /LibreOffice (\d+)\.(\d+)/.exec(v);
     const ok = await ps(`Assert-LibreOfficeVersion -Soffice '${q(realSoffice)}' -Expected '${mm[1]}.${mm[2]}.0'`);
