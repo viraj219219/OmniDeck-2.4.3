@@ -121,8 +121,11 @@ if (!pwsh) {
     await srv.close();
   }
 
-  // native exit codes are real, and a stale $LASTEXITCODE changes nothing
-  if (which("true") && which("false") && which("sleep")) {
+  // Invoke-NativeCapture deliberately launches powershell.exe and uses Windows
+  // process semantics. Keep this behavioural assertion on a Windows runner;
+  // Linux still exercises parsing, static guards, and the platform-neutral
+  // resumable-download helpers above.
+  if (process.platform === "win32" && which("true") && which("false") && which("sleep")) {
     const r = await ps(`$global:LASTEXITCODE = 5; $ok = Invoke-NativeCapture -FilePath '${which("true")}'; $global:LASTEXITCODE = 0; $bad = Invoke-NativeCapture -FilePath '${which("false")}'; $slow = Invoke-NativeCapture -FilePath '${which("sleep")}' -Arguments @('30') -TimeoutSeconds 1; "$($ok.ExitCode)|$($bad.ExitCode)|$($slow.TimedOut)"`);
     check("Invoke-NativeCapture: real exit codes (stale $LASTEXITCODE ignored) and timeout kill", r.stdout.trim() === "0|1|True", r.all);
   }
@@ -138,7 +141,7 @@ if (!pwsh) {
   }
 
   // version + smoke conversion with a REAL LibreOffice, if this machine has one
-  const realSoffice = process.env.OMNIDECK_TEST_SOFFICE || which("soffice");
+  const realSoffice = process.platform === "win32" ? (process.env.OMNIDECK_TEST_SOFFICE || which("soffice")) : null;
   const fixture = join(root, "src-tauri/test-fixtures/three-slides.pptx");
   if (!realSoffice) {
     skip("PowerShell version/smoke helpers against a real LibreOffice", "no soffice on this machine");
