@@ -26,11 +26,24 @@ if (-not $nsis) {
     try {
         # NSIS requires /D=... to be the final argument. Temp path has no spaces on
         # GitHub-hosted Windows runners, keeping this command line unambiguous.
-        $install = Start-Process -FilePath $nsis.FullName -ArgumentList @("/S", "/D=$target") -PassThru -Wait -NoNewWindow
-        if ($install.ExitCode -ne 0) {
-            Fail "silent NSIS installation failed with exit code $($install.ExitCode)"
+        # Invoke the installer directly so PowerShell passes NSIS's /D=... argument
+        # unchanged; /D must be the final argument and overrides the install directory.
+        & $nsis.FullName /S "/D=$target"
+        $installExitCode = $LASTEXITCODE
+        if ($installExitCode -ne 0) {
+            Fail "silent NSIS installation failed with exit code $installExitCode"
         } else {
             Ok "NSIS installer completed a silent installation"
+            if (-not (Test-Path -LiteralPath (Join-Path $target "OmniDeck.exe"))) {
+                $entries = @(Get-ChildItem -LiteralPath $target -Force -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+                Write-Host "Installer returned success but OmniDeck.exe is not in the requested install directory."
+                Write-Host "Install directory: $target"
+                Write-Host "Top-level entries: $($entries -join ', ')"
+                foreach ($candidateRoot in @("$env:ProgramFiles\OmniDeck", "$env:LOCALAPPDATA\Programs\OmniDeck")) {
+                    if (Test-Path -LiteralPath $candidateRoot) { Write-Host "Possible default install directory exists: $candidateRoot" }
+                }
+                Fail "NSIS installer did not install OmniDeck.exe into the requested directory"
+            }
             $soffice = Get-ChildItem -Path $target -Recurse -Filter soffice.exe -ErrorAction SilentlyContinue |
                 Where-Object { $_.FullName -match "resources\\(resources\\)?libreoffice\\program\\soffice\.exe$" } |
                 Select-Object -First 1
