@@ -11,7 +11,7 @@ VERSION="$(tr -d '[:space:]' < "$ROOT/scripts/libreoffice-version.txt")"
 FIXTURE="$ROOT/src-tauri/test-fixtures/three-slides.pptx"
 FAILS=()
 fail() { FAILS+=("$1"); echo "FAIL: $1" >&2; }
-ok() { echo "ok: $1"; }
+ok() { echo "ok:   $1"; }
 one() { local subdir="${1%%/*}"; local pattern="${1#*/}"; find "$DIR/$subdir" -maxdepth 1 -type f -name "$pattern" 2>/dev/null | head -n 1; }
 
 DEB="$(one deb/*.deb)"
