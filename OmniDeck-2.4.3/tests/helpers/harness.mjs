@@ -21,6 +21,10 @@ export function skip(name, reason) {
 }
 
 export function which(cmd) {
+  if (process.platform === "win32") {
+    const r = spawnSync("where.exe", [cmd], { encoding: "utf8", windowsHide: true });
+    return r.status === 0 ? r.stdout.split(/\r?\n/).map((s) => s.trim()).find(Boolean) || null : null;
+  }
   const r = spawnSync("sh", ["-c", `command -v ${cmd}`], { encoding: "utf8" });
   return r.status === 0 ? r.stdout.trim() : null;
 }
