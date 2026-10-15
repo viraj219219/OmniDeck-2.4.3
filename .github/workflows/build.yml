@@ -124,7 +124,7 @@ jobs:
             platform: macos-15-intel
             os: macos
             arch: x86_64
-            tauri_args: "--target x86_64-apple-darwin"
+            tauri_args: "--config src-tauri/tauri.macos.conf.json --target x86_64-apple-darwin"
             rust_targets: "x86_64-apple-darwin"
             bundle_dir: src-tauri/target/x86_64-apple-darwin/release/bundle
           - label: "macOS Apple Silicon"
@@ -132,7 +132,7 @@ jobs:
             platform: macos-15
             os: macos
             arch: aarch64
-            tauri_args: "--target aarch64-apple-darwin"
+            tauri_args: "--config src-tauri/tauri.macos.conf.json --target aarch64-apple-darwin"
             rust_targets: "aarch64-apple-darwin"
             bundle_dir: src-tauri/target/aarch64-apple-darwin/release/bundle
     runs-on: ${{ matrix.platform }}
