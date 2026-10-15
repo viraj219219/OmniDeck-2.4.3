@@ -17,6 +17,15 @@ vo_die() { echo "ERROR: $*" >&2; exit 1; }
 # prints "Computed SHA-256" and exits 3 WITHOUT producing a bundle. Copy the
 # value into the matching line below and commit. Discovery is refused on GitHub
 # Actions so a release can never run it.
+# Permit hash discovery locally, and in GitHub Actions ONLY when this exact
+# manual workflow is explicitly dispatched. Normal push/PR/release builds can
+# never turn an unpinned download into a successful build.
+vo_pin_discovery_allowed() {
+  [ "${OMNIDECK_PIN_DISCOVERY:-0}" = "1" ] || return 1
+  if [ "${GITHUB_ACTIONS:-}" != "true" ]; then return 0; fi
+  [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ] &&
+    [ "${GITHUB_WORKFLOW:-}" = "Pin LibreOffice checksums (manual)" ]
+}
 vo_pinned_sha256() {
   # Test-only override, honoured ONLY together with the test-only base-URL
   # override (a local fixture server) and never on GitHub Actions.
@@ -104,7 +113,7 @@ vo_download() {
     actual="$(vo_sha256 "$partial")"
     echo "Computed SHA-256: $actual"
     if [ -z "$pinned" ]; then
-      if [ "${OMNIDECK_PIN_DISCOVERY:-0}" = "1" ] && [ "${GITHUB_ACTIONS:-}" != "true" ]; then
+      if vo_pin_discovery_allowed; then
         echo "PIN DISCOVERY: add this to vo_pinned_sha256 in scripts/lib/vendor-common.sh:" >&2
         echo "    \"<version>:<platform>-<arch>\")  echo \"$actual\" ;;" >&2
         exit 3
