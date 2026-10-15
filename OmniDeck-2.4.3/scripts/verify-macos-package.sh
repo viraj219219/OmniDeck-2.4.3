@@ -19,7 +19,7 @@ MNT="$(mktemp -d)"
 hdiutil attach "$DMG" -nobrowse -readonly -mountpoint "$MNT" >/dev/null || { echo "FAIL: dmg did not mount" >&2; exit 1; }
 trap 'hdiutil detach "$MNT" -quiet >/dev/null 2>&1 || true' EXIT
 APP="$(ls -d "$MNT"/*.app | head -n1)"; [ -n "$APP" ] && ok "dmg mounts and contains $(basename "$APP")" || { fail "no .app in dmg"; exit 1; }
-LO="$APP/Contents/Resources/resources/libreoffice/LibreOffice.app"
+LO="$APP/Contents/Frameworks/LibreOffice.app"
 SOFFICE="$LO/Contents/MacOS/soffice"
 [ -x "$SOFFICE" ] && ok "nested LibreOffice.app is present at the path util.rs searches" || { fail "bundled LibreOffice.app missing at $LO"; }
 
