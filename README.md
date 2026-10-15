@@ -1,9 +1,11 @@
 # OmniDeck — Sunday School Lesson Builder & Presenter
 
-> **Version 2.2** — production-hardening release: crash-safe saves, transactional imports, native close/flush, display hot-plug safety, installers for Windows / macOS / Linux. See sections 4, 6b and 7.
+> **Version 2.4.3** — current application source lives in `OmniDeck-2.4.3/`. The repository includes native GitHub Actions workflows for testing and building Windows, macOS, and Linux packages. See the [release guide](OmniDeck-2.4.3/docs/RELEASING.md) for required signing inputs and manual acceptance checks.
 
 A desktop application for Sunday School teachers to build lessons and
 present them in class: `OPEN OMNIDECK → CREATE/OPEN LESSON → TEACH`.
+
+After cloning this repository, run all npm and Rust commands from `OmniDeck-2.4.3/` (the folder containing `package.json`), not from the repository root.
 
 This is a **production-track build**, not a mock-data prototype. Every
 service listed below is backed by a real, storage/API-driven
@@ -23,7 +25,7 @@ No React/Vue, no bundler, no build step for the UI itself.
   OS's own webview (WebView2 on Windows, WebKitGTK on Linux), not a
   bundled Chromium.
 - **Windows + Ubuntu + Linux Mint** — Tauri v2 targets all three from one
-  codebase: `.msi`/NSIS `.exe` on Windows, `.deb`/`.AppImage` on Linux.
+  codebase: NSIS `.exe` on Windows, `.deb`/`.AppImage` on Linux.
 - **Fullscreen presentation support** — native OS fullscreen via
   `set_presentation_fullscreen` in `src-tauri/src/main.rs`.
 - **Reliable file handling** — the `dialog` and `fs` plugins give a native
@@ -35,34 +37,20 @@ No React/Vue, no bundler, no build step for the UI itself.
 
 ---
 
-## 2. Project structure
+## 2. Repository and application structure
 
-```
-omnideck/
-├── package.json
-├── src-tauri/                     # Rust shell (thin — see main.rs comments)
-│   ├── Cargo.toml / Cargo.lock
-│   ├── build.rs
-│   ├── tauri.conf.json            # bundle targets: deb, appimage, nsis, msi
-│   ├── capabilities/default.json  # least-privilege Tauri v2 ACL
-│   ├── icons/                     # real OmniDeck brand icon (32/128/128@2x
-│   │                               #   + icon.ico for Windows NSIS/MSI)
-│   └── src/main.rs                # windows, monitors, audience display,
-│                                   # PPTX/PDF/DOCX conversion commands
-├── tests/                         # node-based service/unit tests (no
-│                                   # Rust/Tauri runtime required)
-└── src/                           # frontend (frontendDist)
-    ├── index.html, audience.html
-    ├── styles/
-    └── js/
-        ├── app.js, audience.js
-        ├── state/store.js
-        ├── utils/ (dom, keyboard, icons, storageAdapter)
-        ├── data/  (real WEB Bible text: bible-en-web.json + LICENSE-BIBLE.md,
-        │           books.js, PPTX-SETUP.md)
-        ├── services/              # <-- integration seam, see section 5
-        ├── components/
-        └── views/
+```text
+OmniDeck-Presentation/
+├── README.md
+├── .github/
+│   └── workflows/                 # CI, native builds, release validation
+└── OmniDeck-2.4.3/                 # actual app root: run npm/Rust commands here
+    ├── package.json / package-lock.json
+    ├── src/                        # vanilla HTML/CSS/JavaScript frontend
+    ├── src-tauri/                  # Rust shell, Tauri config and capabilities
+    ├── scripts/                    # vendoring, build and installer verification
+    ├── tests/                      # frontend, script and release-gate tests
+    └── docs/RELEASING.md            # release setup and manual acceptance
 ```
 
 ---
@@ -80,6 +68,7 @@ omnideck/
 ### Every OS: first-time setup and daily commands
 Run from the project folder (the one containing `package.json`):
 ```
+cd OmniDeck-2.4.3
 npm ci            # REQUIRED once, and again after dependencies change.
 npm run dev       # preflight -> pdf.js -> LibreOffice -> local Tauri CLI (dev mode)
 npm run build     # strict release build: fails if pdf.js/LibreOffice are missing
@@ -95,7 +84,7 @@ runs the locally installed one. To run dev without pdf.js on purpose, set
 sudo apt update
 sudo apt install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev \
   build-essential curl wget file libssl-dev libayatana-appindicator3-dev
-cd omnideck && npm ci && npm run dev
+cd OmniDeck-2.4.3 && npm ci && npm run dev
 ```
 Linux Mint is Ubuntu-LTS-based; if a given Mint release's `.deb`
 dependency names differ from the Ubuntu LTS base you built on, install the
@@ -105,7 +94,7 @@ don't assume the `.deb` installs cleanly unverified.
 ### macOS (Intel and Apple Silicon)
 ```bash
 xcode-select --install     # Command Line Tools, once
-cd omnideck && npm ci && npm run dev
+cd OmniDeck-2.4.3 && npm ci && npm run dev
 ```
 
 ### Windows 10 / 11 (PowerShell or CMD)
@@ -113,7 +102,7 @@ cd omnideck && npm ci && npm run dev
 # Requires "Desktop development with C++" (Visual Studio Build Tools)
 # and the WebView2 Runtime (preinstalled on Windows 11 and most
 # up-to-date Windows 10 machines).
-cd omnideck
+cd OmniDeck-2.4.3
 npm ci
 npm run dev
 ```
