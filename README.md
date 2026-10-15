@@ -65,7 +65,7 @@ OmniDeck-Presentation/
   uses that bundled copy; PDF/PowerPoint import uses the bundled pdf.js.
 
 ### Every OS: first-time setup and daily commands
-Run from the project folder (the one containing `package.json`):
+From the cloned repository root (the directory containing this README), enter the application folder first:
 ```
 cd OmniDeck-2.4.3
 npm ci            # REQUIRED once, and again after dependencies change.
