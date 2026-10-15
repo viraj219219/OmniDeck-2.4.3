@@ -88,6 +88,9 @@ jobs:
       contents: write   # tauri-action attaches installers to the draft release on tags
     strategy:
       fail-fast: false
+      # tauri-action v0 updates latest.json with a delete/re-upload flow; serialize tag builds
+      # so parallel platforms cannot race while merging the updater manifest. PR builds stay parallel.
+      max-parallel: ${{ startsWith(github.ref, 'refs/tags/v') && 1 || 5 }}
       matrix:
         include:
           - label: "Linux x86_64"
