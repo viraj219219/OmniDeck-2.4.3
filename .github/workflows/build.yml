@@ -293,9 +293,10 @@ jobs:
           mkdir rel && cd rel
           gh release download "${{ github.ref_name }}" --repo "${{ github.repository }}" --pattern latest.json
           gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" --json assets --jq '.assets[].name' > ../assets.txt
+          gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" --json assets --jq '.assets[] | [.id, .name] | @tsv' > ../assets-map.tsv
           cat ../assets.txt
       - name: Validate updater manifest against the attached assets
-        run: node scripts/verify-release-assets.mjs --latest rel/latest.json --assets assets.txt --version "$(node -p "require('./package.json').version")"
+        run: node scripts/verify-release-assets.mjs --latest rel/latest.json --assets assets.txt --asset-map assets-map.tsv --version "$(node -p "require('./package.json').version")"
       - name: SHA256SUMS
         run: |
           cd rel
